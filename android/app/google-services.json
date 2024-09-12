@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "114881204665",
+    "project_id": "videoconference-26b70",
+    "storage_bucket": "videoconference-26b70.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:114881204665:android:d68fb1403cec1639ece668",
+        "android_client_info": {
+          "package_name": "com.kc.video_conference.video_conference"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3Bu4TPWjv4Ls6fO5oogGjenofVox-WY8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

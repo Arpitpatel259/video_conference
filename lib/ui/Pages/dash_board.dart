@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:video_conference/ui/Chat%20Module/user_list.dart';
 import 'package:video_conference/ui/Pages/profile_setting_screen.dart';
 
 import '../MeetingScreens/today_meeting.dart';
@@ -24,7 +23,6 @@ class _DashBoardState extends State<DashBoard> {
 
   final List<Widget> _screens = [
     const TodayMeetingsScreen(),
-    const UserListScreen(),
     const ProfileSettingScreen(),
   ];
 

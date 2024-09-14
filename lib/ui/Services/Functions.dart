@@ -11,7 +11,7 @@ import 'package:video_conference/MainPage.dart';
 
 import '../../firebase_options.dart';
 import '../Authentication/login_screen.dart';
-import '../Pages/dashBoard.dart';
+import '../Pages/dash_board.dart';
 import '../Pages/splashScreen.dart';
 import 'DatabaseMethod.dart';
 

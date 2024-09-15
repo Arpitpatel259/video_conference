@@ -43,9 +43,7 @@ class UpgradePlans extends StatelessWidget {
                   'Chat support',
                   'Virtual backgrounds',
                 ],
-                onTap: () {
-                  showFeatureComingSoonDialog(context);
-                },
+                onTap: () {},
               ),
             ),
             Container(
@@ -61,9 +59,7 @@ class UpgradePlans extends StatelessWidget {
                   'Advanced screen sharing (multiple screens)',
                   'Priority customer support',
                 ],
-                onTap: () {
-                  showFeatureComingSoonDialog(context);
-                },
+                onTap: () {},
               ),
             ),
             Container(
@@ -80,63 +76,12 @@ class UpgradePlans extends StatelessWidget {
                   'Integration with CRM tools',
                   'Dedicated account manager',
                 ],
-                onTap: () {
-                  showFeatureComingSoonDialog(context);
-                },
+                onTap: () {},
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  void showFeatureComingSoonDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
-          ),
-          title: const Text(
-            'Coming Soon!',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.deepPurple,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          content: const Text(
-            'This feature is coming in the future. Stay tuned!',
-            textAlign: TextAlign.center,
-          ),
-          actions: [
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text(
-                  'OK',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }
@@ -223,7 +168,7 @@ class UpgradePlanCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Upgrade Now',
+                      'Coming Soon',
                       textAlign: TextAlign.center,
                       // Ensures the text is centered within its space
                       style: TextStyle(

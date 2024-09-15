@@ -28,7 +28,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: DashBoard(),
+      body: DashBoard(initialIndex: 0),
     );
   }
 }

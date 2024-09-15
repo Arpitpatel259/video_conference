@@ -142,6 +142,8 @@ class Functions {
             "name": user.displayName,
             "imgUrl": user.photoURL,
             "id": user.uid,
+            "status": "Offline",
+            "isAdded": false,
           };
           await DatabaseMethod()
               .addUser(user.uid, userInfo)
@@ -169,7 +171,10 @@ class Functions {
 
             Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const DashBoard()),
+                MaterialPageRoute(
+                    builder: (context) => const DashBoard(
+                          initialIndex: 0,
+                        )),
                 (route) => false);
           });
         }
@@ -209,6 +214,8 @@ class Functions {
           'email': email,
           'imgUrl': "",
           'password': password,
+          "status": "Offline",
+          "isAdded": false,
         };
 
         await databaseMethod.addUser(user.uid, userInfo);
@@ -245,6 +252,8 @@ class Functions {
           await prefs.setString("name", userSnapshot['name']);
           await prefs.setString("userId", userSnapshot.id);
           await prefs.setString("imgUrl", userSnapshot['imgUrl'] ?? "");
+          await prefs.setString("isAdded", userSnapshot['isAdded'] ?? "");
+          await prefs.setString("status", userSnapshot['status'] ?? "");
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -261,7 +270,10 @@ class Functions {
           );
 
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const DashBoard()),
+            MaterialPageRoute(
+                builder: (context) => const DashBoard(
+                      initialIndex: 0,
+                    )),
             (Route<dynamic> route) => false,
           );
         } else {

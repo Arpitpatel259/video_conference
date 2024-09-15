@@ -19,6 +19,9 @@ class _TodayMeetingsScreenState extends State<TodayMeetingsScreen> {
   String? name;
   String? email;
 
+  final TextEditingController _search = TextEditingController();
+  ValueNotifier<bool> isSearched = ValueNotifier(false);
+
   @override
   void initState() {
     super.initState();
@@ -44,37 +47,41 @@ class _TodayMeetingsScreenState extends State<TodayMeetingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.black12,
+      appBar: AppBar(
+        elevation: 4,
+        backgroundColor: const Color(0xff3a57e8),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Hi, ${capitalizeFirstLetter(name ?? "")}',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            ClipOval(
+              clipBehavior: Clip.hardEdge,
+              child: SizedBox(
+                width: 50,
+                height: 50,
+                child: Functions().buildProfileImage(profileImageUrl),
+              ),
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Hi, ${capitalizeFirstLetter(name ?? "")}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  ClipOval(
-                    clipBehavior: Clip.hardEdge,
-                    child: SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: Functions().buildProfileImage(profileImageUrl),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
               // Title Section
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -87,29 +94,90 @@ class _TodayMeetingsScreenState extends State<TodayMeetingsScreen> {
                       color: Colors.black,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    // Padding around the icon
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200], // Background color
-                      shape: BoxShape.circle, // Make the background circular
-                    ),
-                    child: const Icon(
-                      Icons.search_outlined,
-                      color: Colors.black, // Icon color
-                      size: 24.0, // Icon size
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        // Padding around the icon
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200], // Background color
+                          shape:
+                              BoxShape.circle, // Make the background circular
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MeetingScreen(),
+                                ));
+                          },
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        // Padding around the icon
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200], // Background color
+                          shape:
+                              BoxShape.circle, // Make the background circular
+                        ),
+                        child: ValueListenableBuilder(
+                          valueListenable: isSearched,
+                          builder: (context, value, child) {
+                            return InkWell(
+                              onTap: () {
+                                isSearched.value = !isSearched.value;
+                              },
+                              child: Icon(
+                                value ? Icons.close : Icons.search,
+                                color: Colors.black,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
               const SizedBox(height: 16),
 
+              ValueListenableBuilder(
+                valueListenable: isSearched,
+                builder: (context, value, child) {
+                  return animatedContainer(value ? 70 : 0);
+                },
+              ),
               // Meeting Cards
               Expanded(
                 child: ListView(
                   children: const [
                     MeetingCard(
-                      title: 'Invomoon Project Brief',
+                      title: 'Involution Project Brief',
+                      time: 'Starts in 7h 25m',
+                      date: '17 Jul 2023, 21:00 PM - 21:30 PM',
+                      participants: '3+',
+                    ),
+                    MeetingCard(
+                      title: 'Hatypo Studio Weekly Meeting',
+                      time: 'Starts in 7h 25m',
+                      date: '17 Jul 2023, 21:00 PM - 21:30 PM',
+                      participants: '5+',
+                    ),
+                    MeetingCard(
+                      title: 'Marketing Team Discussion',
+                      time: 'Starts in 7h 25m',
+                      date: '17 Jul 2023, 21:00 PM - 21:30 PM',
+                      participants: '2+',
+                    ),
+                    MeetingCard(
+                      title: 'Involution Project Brief',
                       time: 'Starts in 7h 25m',
                       date: '17 Jul 2023, 21:00 PM - 21:30 PM',
                       participants: '3+',
@@ -133,15 +201,59 @@ class _TodayMeetingsScreenState extends State<TodayMeetingsScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MeetingScreen(),
-              ));
-        },
-        child: const Icon(Icons.add),
+    );
+  }
+
+  Widget animatedContainer(double? height) {
+    return AnimatedContainer(
+      duration: const Duration(seconds: 1),
+      height: height,
+      width: double.infinity,
+      curve: Curves.fastOutSlowIn,
+      decoration: BoxDecoration(
+        color: Colors.grey[200], // Background color
+        shape: BoxShape.rectangle, // Make the background circular
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: TextFormField(
+          controller: _search,
+          obscureText: false,
+          textAlign: TextAlign.start,
+          maxLines: 1,
+          style: const TextStyle(
+            fontWeight: FontWeight.w400,
+            fontStyle: FontStyle.normal,
+            fontSize: 16,
+            color: Color(0xff000000),
+          ),
+          decoration: InputDecoration(
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4.0),
+              borderSide: const BorderSide(color: Color(0xff9e9e9e), width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4.0),
+              borderSide: const BorderSide(color: Color(0xff9e9e9e), width: 1),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4.0),
+              borderSide: const BorderSide(color: Color(0xff9e9e9e), width: 1),
+            ),
+            labelText: "Search",
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold, // BOLD HERE
+              fontStyle: FontStyle.normal,
+              fontSize: 16,
+              color: Color(0xff9e9e9e),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            isDense: false,
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          ),
+        ),
       ),
     );
   }

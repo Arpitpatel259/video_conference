@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_conference/ui/ChatModule/home_screen.dart';
 import 'package:video_conference/ui/Pages/profile_setting_screen.dart';
 
 import '../MeetingScreens/today_meeting.dart';
 
 class DashBoard extends StatefulWidget {
-  const DashBoard({super.key});
+  final int initialIndex;
+
+  const DashBoard({super.key, required this.initialIndex});
 
   @override
   State<DashBoard> createState() => _DashBoardState();
@@ -23,12 +26,14 @@ class _DashBoardState extends State<DashBoard> {
 
   final List<Widget> _screens = [
     const TodayMeetingsScreen(),
+    const HomeScreen(),
     const ProfileSettingScreen(),
   ];
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
     _loadUserData();
   }
 
@@ -51,30 +56,28 @@ class _DashBoardState extends State<DashBoard> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
-        selectedItemColor: isDarkMode ? Colors.white : Colors.black,
-        unselectedItemColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+        backgroundColor: const Color(0xff3a57e8),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey.shade400,
         showSelectedLabels: false,
         showUnselectedLabels: false,
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
         items: const [
           BottomNavigationBarItem(
-            label: 'Home',
+            label: 'Home', // Home tab
             icon: Icon(Icons.home_outlined),
           ),
           BottomNavigationBarItem(
-            label: 'Chat',
+            label: 'Chat', // Chat tab
             icon: Icon(Icons.chat_outlined),
           ),
           BottomNavigationBarItem(
-            label: 'Settings',
+            label: 'Settings', // Settings tab
             icon: Icon(Icons.settings),
           ),
         ],

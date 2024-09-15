@@ -20,10 +20,10 @@ class _MeetingScreenState extends State<MeetingScreen> {
         elevation: 0,
         centerTitle: false,
         automaticallyImplyLeading: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xff3a57e8),
         // Transparent background
         iconTheme: const IconThemeData(
-          color: Colors.black,
+          color: Colors.white,
         ),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.zero,
@@ -200,66 +200,73 @@ class _MeetingScreenState extends State<MeetingScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // New Meeting Option 1
-              ListTile(
-                leading:
-                    const Icon(Icons.schedule, color: Colors.blue, size: 30),
-                title: const Text(
-                  'Create a Meeting for Later',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                onTap: () {
-                  // Add action for scheduling a meeting
-                  Navigator.pop(context);
-                },
-              ),
-              const Divider(),
-              // New Meeting Option 2
-              ListTile(
-                leading: const Icon(Icons.link, color: Colors.green, size: 30),
-                title: const Text(
-                  'Get a Meeting Link to Share',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                onTap: () {
-                  // Add action for getting a meeting link
-                  Navigator.pop(context);
-                },
-              ),
-              const Divider(),
-              // New Meeting Option 3
-              ListTile(
-                leading:
-                    const Icon(Icons.videocam, color: Colors.orange, size: 30),
-                title: const Text(
-                  'Start an Instant Meeting',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                onTap: () {
-                  // Add action for starting an instant meeting
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AgoraClientVideo(),
+        return Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // New Meeting Option 1
+                ListTile(
+                  leading:
+                      Icon(Icons.schedule, color: Colors.blue[700], size: 30),
+                  title: const Text(
+                    'Create a Meeting for Later',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
-                  );
-                },
-              ),
-            ],
+                  ),
+                  onTap: () {
+                    // Add action for scheduling a meeting
+                    Navigator.pop(context);
+                  },
+                ),
+                const Divider(),
+                // New Meeting Option 2
+                ListTile(
+                  leading: Icon(Icons.link, color: Colors.green[700], size: 30),
+                  title: const Text(
+                    'Get a Meeting Link to Share',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onTap: () {
+                    // Add action for getting a meeting link
+                    Navigator.pop(context);
+                  },
+                ),
+                const Divider(),
+                // New Meeting Option 3
+                ListTile(
+                  leading:
+                      Icon(Icons.videocam, color: Colors.orange[700], size: 30),
+                  title: const Text(
+                    'Start an Instant Meeting',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onTap: () {
+                    // Add action for starting an instant meeting
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AgoraClientVideo(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },

@@ -17,10 +17,31 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: _buildAppBar(),
       body: Stack(
-        alignment: Alignment.topLeft,
         children: [
+          // Background image
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/logos/createAccountbackground.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // Back button
+          Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 40, left: 16),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
+          ),
+          // Forgot password form and text
           Align(
             alignment: Alignment.center,
             child: Padding(
@@ -31,12 +52,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      'assets/logos/password.jpg',
-                      height: 200,
-                      width: 200,
-                      fit: BoxFit.cover,
-                    ),
                     const SizedBox(height: 30),
                     _buildTitle(),
                     const SizedBox(height: 8),
@@ -53,24 +68,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
-      elevation: 0,
-      centerTitle: false,
-      automaticallyImplyLeading: true,
-      backgroundColor: Colors.transparent,
-      iconTheme: const IconThemeData(color: Colors.black),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    );
-  }
-
   Text _buildTitle() {
     return const Text(
       "Forgot Password?",
       textAlign: TextAlign.start,
       style: TextStyle(
         fontWeight: FontWeight.w700,
-        fontSize: 20,
+        fontSize: 40,
         color: Color(0xff3a57e8),
       ),
     );
@@ -82,7 +86,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       textAlign: TextAlign.center,
       style: TextStyle(
         fontWeight: FontWeight.w400,
-        fontSize: 14,
+        fontSize: 20,
         color: Color(0xff818181),
       ),
     );

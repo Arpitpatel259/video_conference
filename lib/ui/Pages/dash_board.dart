@@ -4,6 +4,7 @@ import 'package:video_conference/ui/ChatModule/home_screen.dart';
 import 'package:video_conference/ui/Pages/profile_setting_screen.dart';
 
 import '../MeetingScreens/today_meeting.dart';
+import '../Services/Functions.dart';
 
 class DashBoard extends StatefulWidget {
   final int initialIndex;
@@ -65,21 +66,29 @@ class _DashBoardState extends State<DashBoard> {
         unselectedItemColor: Colors.grey.shade400,
         showSelectedLabels: false,
         showUnselectedLabels: false,
+        elevation: 2,
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             label: 'Home', // Home tab
             icon: Icon(Icons.home_outlined),
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             label: 'Chat', // Chat tab
             icon: Icon(Icons.chat_outlined),
           ),
           BottomNavigationBarItem(
-            label: 'Settings', // Settings tab
-            icon: Icon(Icons.settings),
-          ),
+            label: 'Profile', // Settings tab
+            icon: SizedBox(
+              width: 24, // Define a specific size for the icon
+              height: 24,
+              child: ClipOval(
+                clipBehavior: Clip.hardEdge,
+                child: Functions().buildProfileImage(profileImageUrl),
+              ),
+            ),
+          )
         ],
       ),
     );

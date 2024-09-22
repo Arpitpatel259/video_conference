@@ -12,7 +12,20 @@
           "package_name": "com.kc.video_conference.video_conference"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "114881204665-nrrq3rsn4125nphi4tlo5eqog09iefnv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kc.video_conference.video_conference",
+            "certificate_hash": "96cb34ae77795c5a1127dde5c4c90ed152cfffad"
+          }
+        },
+        {
+          "client_id": "114881204665-gutrc08dmvp5ij8p0k8l8fu47qku2nd9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA3Bu4TPWjv4Ls6fO5oogGjenofVox-WY8"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "114881204665-gutrc08dmvp5ij8p0k8l8fu47qku2nd9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "114881204665-cm9tikbnnh2cjfvs65fdjcrba4scb2el.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kc.videoconference.videoConference"
+              }
+            }
+          ]
         }
       }
     }

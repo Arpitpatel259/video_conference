@@ -14,7 +14,8 @@ class ChatUserList extends StatefulWidget {
 }
 
 class _ChatUserListState extends State<ChatUserList> {
-  final _search = TextEditingController();
+  final ValueNotifier<bool> _search = ValueNotifier(false);
+  var searchController = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
@@ -35,6 +36,9 @@ class _ChatUserListState extends State<ChatUserList> {
     userId = pref.getString("userId");
     fetchAllUsers();
   }
+
+  List<Map<String, dynamic>> _originalUserDataList = [];
+  List<Map<String, dynamic>> _filteredUserDataList = [];
 
   Future<void> fetchAllUsers() async {
     try {
@@ -85,10 +89,21 @@ class _ChatUserListState extends State<ChatUserList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: _buildAppBar(),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _buildUserList(),
+      body: Column(
+        children: [
+          ValueListenableBuilder(
+            valueListenable: _search,
+            builder: (context, value, child) {
+              return _buildSearchBar(value ? 70 : 0, value);
+            },
+          ),
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _buildUserList(),
+        ],
+      ),
     );
   }
 
@@ -97,12 +112,39 @@ class _ChatUserListState extends State<ChatUserList> {
       title: const Text("Add Person", style: TextStyle(color: Colors.white)),
       backgroundColor: const Color(0xff3a57e8),
       iconTheme: const IconThemeData(color: Colors.white),
-      automaticallyImplyLeading: false,
+      automaticallyImplyLeading: true,
       // Removes the back arrow
       actions: [
-        IconButton(
-          icon: const Icon(Icons.search, color: Colors.white),
-          onPressed: () => showSearchDialog(context),
+        Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            shape: BoxShape.circle,
+          ),
+          child: ValueListenableBuilder(
+            valueListenable: _search,
+            builder: (context, value, child) {
+              return InkWell(
+                onTap: () {
+                  if (value) {
+                    searchController.clear();
+                    FocusScope.of(context).unfocus();
+                    _search.value = false;
+                    _filteredUserDataList = List.from(
+                        _originalUserDataList); // Reset the filtered list
+                    setState(() {});
+                  } else {
+                    _search.value = true;
+                  }
+                },
+                child: Icon(
+                  value ? Icons.close : Icons.search,
+                  color: Colors.black,
+                  size: 24,
+                ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -128,8 +170,10 @@ class _ChatUserListState extends State<ChatUserList> {
               child: Functions().buildProfileImage(user['imgUrl']),
             ),
             title: Text(user['name'],
-                style:
-                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                style: const TextStyle(
+                    fontSize: 17,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500)),
             trailing: IconButton(
               icon: const Icon(Icons.add, color: Colors.green, size: 30),
               onPressed: () async {
@@ -154,15 +198,57 @@ class _ChatUserListState extends State<ChatUserList> {
     );
   }
 
-  void showSearchDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Search Users'),
-        content: TextFormField(
-          controller: _search,
-          onChanged: onSearch,
-          decoration: const InputDecoration(labelText: 'Enter name'),
+  Widget _buildSearchBar(double? height, bool isVisible) {
+    return AnimatedOpacity(
+      opacity: isVisible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 300),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        height: isVisible ? height : 0,
+        width: double.infinity,
+        curve: Curves.fastOutSlowIn,
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: TextFormField(
+            controller: searchController,
+            obscureText: false,
+            textAlign: TextAlign.start,
+            maxLines: 1,
+            onChanged: (value) {
+              onSearch(value);
+            },
+            style: const TextStyle(
+              fontWeight: FontWeight.w400,
+              fontSize: 16,
+              color: Color(0xff000000),
+            ),
+            decoration: InputDecoration(
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4.0),
+                borderSide:
+                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4.0),
+                borderSide:
+                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4.0),
+                borderSide:
+                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
+              ),
+              labelText: "Search",
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Color(0xff9e9e9e),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              isDense: false,
+            ),
+          ),
         ),
       ),
     );

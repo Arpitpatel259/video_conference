@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_conference/ui/ChatModule/chat_room.dart';
 import 'package:video_conference/ui/ChatModule/chat_user_list.dart';
-
-import '../Services/Functions.dart';
+import 'package:video_conference/ui/Services/Functions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,7 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late SharedPreferences _prefs;
   String? _userId, _name;
-  List<Map<String, dynamic>> _userDataList = [];
+  List<Map<String, dynamic>> _originalUserDataList = [];
+  List<Map<String, dynamic>> _filteredUserDataList = [];
   final ValueNotifier<bool> _isSearched = ValueNotifier(false);
 
   @override
@@ -59,7 +59,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }));
 
       setState(() {
-        _userDataList = userDataList;
+        _originalUserDataList = userDataList; // Store original data
+        _filteredUserDataList =
+            List.from(userDataList); // Initialize filtered list
       });
     } catch (e) {
       print("Error fetching chat users: $e");
@@ -78,37 +80,63 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        elevation: 4,
+        elevation: 2,
         backgroundColor: const Color(0xff3a57e8),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
+        ),
         title: const Text("Chats", style: TextStyle(color: Colors.white)),
         actions: [
-          ValueListenableBuilder<bool>(
-            valueListenable: _isSearched,
-            builder: (context, isSearched, _) {
-              return IconButton(
-                icon: Icon(isSearched ? Icons.close : Icons.search,
-                    color: Colors.white),
-                onPressed: () => _isSearched.value = !isSearched,
-              );
-            },
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              shape: BoxShape.circle,
+            ),
+            child: ValueListenableBuilder(
+              valueListenable: _isSearched,
+              builder: (context, value, child) {
+                return InkWell(
+                  onTap: () {
+                    if (value) {
+                      _searchController.clear();
+                      FocusScope.of(context).unfocus();
+                      _isSearched.value = false;
+                      _filteredUserDataList = List.from(
+                          _originalUserDataList); // Reset the filtered list
+                      setState(() {});
+                    } else {
+                      _isSearched.value = true;
+                    }
+                  },
+                  child: Icon(
+                    value ? Icons.close : Icons.search,
+                    color: Colors.black,
+                    size: 24,
+                  ),
+                );
+              },
+            ),
           ),
           const SizedBox(width: 10),
         ],
       ),
       body: Column(
         children: [
-          ValueListenableBuilder<bool>(
+          ValueListenableBuilder(
             valueListenable: _isSearched,
-            builder: (context, isSearched, _) => _buildSearchBar(isSearched),
+            builder: (context, value, child) {
+              return _buildSearchBar(value ? 70 : 0, value);
+            },
           ),
           Expanded(
             child: isLoading
-                ? Center(child: const CircularProgressIndicator())
-                : _userDataList.isNotEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredUserDataList.isNotEmpty
                     ? ListView.builder(
-                        itemCount: _userDataList.length,
+                        itemCount: _filteredUserDataList.length,
                         itemBuilder: (context, index) {
-                          final user = _userDataList[index];
+                          final user = _filteredUserDataList[index];
                           if (user['name'] == _name)
                             return const SizedBox.shrink();
 
@@ -116,8 +144,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16.0, vertical: 8.0),
                             leading: Container(
-                              height: 60,
-                              width: 60,
+                              height: 50,
+                              width: 50,
                               clipBehavior: Clip.antiAlias,
                               decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
@@ -127,13 +155,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             title: Text(user['name'] ?? 'Unknown',
                                 style: const TextStyle(
+                                    color: Colors.black,
                                     fontWeight: FontWeight.bold)),
-                            subtitle: Text(user['email'] ?? 'No email'),
+                            subtitle: Text(
+                              user['email'] ?? 'No email',
+                              style: const TextStyle(
+                                color: Colors.black,
+                              ),
+                            ),
                             trailing: const Icon(Icons.arrow_forward_ios,
                                 color: Colors.grey),
                             onTap: () {
                               final roomId = _chatRoomId(
-                                  _auth.currentUser!.displayName!,
+                                  _auth.currentUser!.displayName ??
+                                      user['name'],
                                   user['name']);
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -163,33 +198,65 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar(bool isSearched) {
-    return AnimatedContainer(
-      duration: const Duration(seconds: 1),
-      height: isSearched ? 50 : 0,
-      width: double.infinity,
-      curve: Curves.fastOutSlowIn,
-      padding: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: isSearched
-          ? TextFormField(
-              controller: _searchController,
-              onChanged: (value) => _filterUsers(value),
-              decoration: const InputDecoration(
-                labelText: "Search",
-                border: OutlineInputBorder(),
+  Widget _buildSearchBar(double? height, bool isVisible) {
+    return AnimatedOpacity(
+      opacity: isVisible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 300),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        height: isVisible ? height : 0,
+        width: double.infinity,
+        curve: Curves.fastOutSlowIn,
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: TextFormField(
+            controller: _searchController,
+            obscureText: false,
+            textAlign: TextAlign.start,
+            maxLines: 1,
+            onChanged: (value) {
+              _filterUsers(value);
+            },
+            style: const TextStyle(
+              fontWeight: FontWeight.w400,
+              fontSize: 16,
+              color: Color(0xff000000),
+            ),
+            decoration: InputDecoration(
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4.0),
+                borderSide:
+                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
               ),
-            )
-          : null,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4.0),
+                borderSide:
+                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4.0),
+                borderSide:
+                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
+              ),
+              labelText: "Search",
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Color(0xff9e9e9e),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              isDense: false,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
   void _filterUsers(String query) {
     setState(() {
-      _userDataList = _userDataList
+      _filteredUserDataList = _originalUserDataList
           .where((user) => (user['name'] as String)
               .toLowerCase()
               .contains(query.toLowerCase()))

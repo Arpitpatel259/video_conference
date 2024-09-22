@@ -8,11 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_conference/MainPage.dart';
+import 'package:video_conference/ui/Pages/Splash/splash_screen.dart';
+import 'package:video_conference/ui/Services/under_maintainance.dart';
 
 import '../../firebase_options.dart';
-import '../Authentication/login_screen.dart';
-import '../Pages/dash_board.dart';
-import '../Pages/splashScreen.dart';
 import 'DatabaseMethod.dart';
 
 class Functions {
@@ -29,50 +28,6 @@ class Functions {
     return _auth.currentUser;
   }
 
-  //To show Profile images
-  Widget buildProfileImage(String? base64Image) {
-    if (base64Image == null || base64Image.isEmpty) {
-      // Handle the case where no image is provided
-      return const Icon(
-        Icons.account_circle,
-        size: 50,
-        color: Colors.grey,
-      );
-    }
-
-    // Heuristic to check if the input is a URL or Base64 string
-    if (base64Image.startsWith('http') || base64Image.startsWith('https')) {
-      // If it starts with http or https, treat it as a network URL
-      return Image.network(
-        base64Image,
-        fit: BoxFit.cover,
-        width: 50,
-        height: 50,
-      );
-    } else {
-      try {
-        // Decode the Base64 string to bytes
-        Uint8List imageBytes = base64Decode(base64Image);
-
-        return ClipOval(
-          child: Image.memory(
-            imageBytes,
-            fit: BoxFit.cover,
-            width: 50,
-            height: 50,
-          ),
-        );
-      } catch (e) {
-        // Handle errors during decoding
-        return const Icon(
-          Icons.error,
-          size: 50,
-          color: Colors.red,
-        );
-      }
-    }
-  }
-
   //To check user is logged in or not
   Future<Widget> checkIfAlreadyLogin() async {
     try {
@@ -84,14 +39,28 @@ class Functions {
         );
       }
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      bool? isLoggedIn = prefs.getBool('isLoggedIn');
+      // Check if the app is under maintenance
+      DocumentSnapshot maintenanceSnapshot = await FirebaseFirestore.instance
+          .collection('settings')
+          .doc('appStatus')
+          .get();
 
-      // Return the appropriate widget based on the login status
-      if (isLoggedIn == true) {
-        return const MainPage();
+      bool isAppUnderMaintenance =
+          maintenanceSnapshot['isAppUnderMaintenance'] ?? false;
+
+      if (isAppUnderMaintenance) {
+        return const UnderMaintainance(); // Define this screen to show maintenance message
       } else {
-        return const LoginScreen();
+        // Check login status if app is not under maintenance
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        bool? isLoggedIn = prefs.getBool('isLoggedIn');
+
+        // Return the appropriate widget based on the login status
+        if (isLoggedIn == true) {
+          return const MainPage();
+        } else {
+          return const SplashScreenPage();
+        }
       }
     } catch (e) {
       if (kDebugMode) {
@@ -142,8 +111,6 @@ class Functions {
             "name": user.displayName,
             "imgUrl": user.photoURL,
             "id": user.uid,
-            "status": "Offline",
-            "isAdded": false,
           };
           await DatabaseMethod()
               .addUser(user.uid, userInfo)
@@ -171,10 +138,7 @@ class Functions {
 
             Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                    builder: (context) => const DashBoard(
-                          initialIndex: 0,
-                        )),
+                MaterialPageRoute(builder: (context) => const MainPage()),
                 (route) => false);
           });
         }
@@ -233,7 +197,7 @@ class Functions {
   }
 
   //Login with Email/Password
-  Future<void> userLogin(
+  /*Future<void> userLogin(
       String email, String password, BuildContext context) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance
@@ -321,6 +285,159 @@ class Functions {
       );
     }
   }
+*/
+
+  //Login with Email/Password
+  Future<void> userLogin(
+      String email, String password, BuildContext context) async {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      if (userCredential.user != null) {
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('User')
+            .doc(userCredential.user!.uid)
+            .get();
+
+        if (userSnapshot.exists) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('isLoggedIn', true);
+          await prefs.setString("email", userSnapshot['email']);
+          await prefs.setString("name", userSnapshot['name']);
+          await prefs.setString("userId", userSnapshot.id);
+          await prefs.setString("imgUrl", userSnapshot['imgUrl'] ?? "");
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text("You Have Been Logged In Successfully!"),
+              backgroundColor: Colors.teal,
+              behavior: SnackBarBehavior.floating,
+              action: SnackBarAction(
+                label: 'Dismiss',
+                disabledTextColor: Colors.white,
+                textColor: Colors.yellow,
+                onPressed: () {},
+              ),
+            ),
+          );
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const MainPage()),
+            (Route<dynamic> route) => false,
+          );
+        } else {
+          throw Exception("User data not found in Firestore");
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      if (e.code == 'user-not-found') {
+        errorMessage = "No User Found for that Email";
+      } else if (e.code == 'wrong-password') {
+        errorMessage = "Wrong Password Provided by You";
+      } else if (e.code == 'invalid-email') {
+        errorMessage = "Invalid Email Provided by You";
+      } else {
+        errorMessage = "An unknown error occurred";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.teal,
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Dismiss',
+            disabledTextColor: Colors.white,
+            textColor: Colors.yellow,
+            onPressed: () {},
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+              'An error occurred while logging in. Please try again.'),
+          backgroundColor: Colors.teal,
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Dismiss',
+            disabledTextColor: Colors.white,
+            textColor: Colors.yellow,
+            onPressed: () {},
+          ),
+        ),
+      );
+    }
+  }
+
+  //To show Profile images
+  Widget buildProfileImage(String? base64Image) {
+    if (base64Image == null || base64Image.isEmpty) {
+      // Handle the case where no image is provided
+      return const Icon(
+        Icons.account_circle,
+        size: 50,
+        color: Colors.grey,
+      );
+    }
+
+    // Heuristic to check if the input is a URL or Base64 string
+    if (base64Image.startsWith('http') || base64Image.startsWith('https')) {
+      // Use Image.network with a loading builder and error handling
+      return ClipOval(
+        child: Image.network(
+          base64Image,
+          fit: BoxFit.cover,
+          width: 50,
+          height: 50,
+          loadingBuilder: (BuildContext context, Widget child,
+              ImageChunkEvent? loadingProgress) {
+            if (loadingProgress == null) {
+              return child;
+            } else {
+              return const SizedBox(
+                width: 50,
+                height: 50,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.error,
+              size: 50,
+              color: Colors.red,
+            );
+          },
+        ),
+      );
+    } else {
+      try {
+        // Decode the Base64 string to bytes
+        Uint8List imageBytes = base64Decode(base64Image);
+
+        return ClipOval(
+          child: Image.memory(
+            imageBytes,
+            fit: BoxFit.cover,
+            width: 50,
+            height: 50,
+          ),
+        );
+      } catch (e) {
+        // Handle errors during decoding
+        return const Icon(
+          Icons.error,
+          size: 50,
+          color: Colors.red,
+        );
+      }
+    }
+  }
 
   //Logout Your Session
   Future<void> logout(BuildContext context) async {
@@ -334,7 +451,7 @@ class Functions {
 
       Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const SplashScreen()),
+          MaterialPageRoute(builder: (context) => const SplashScreenPage()),
           (route) => false);
     } catch (e) {
       if (kDebugMode) {

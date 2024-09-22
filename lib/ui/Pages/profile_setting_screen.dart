@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -106,10 +107,10 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
       appBar: AppBar(
-        elevation: 4,
+        elevation: 2,
         backgroundColor: const Color(0xff3a57e8),
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
         ),
         title: const Text(
           "My Profile",
@@ -149,13 +150,20 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                               await _uploadProfileImage(_mediaFile);
                             }
                           },
-                          child: ClipOval(
-                            clipBehavior: Clip.hardEdge,
-                            child: SizedBox(
-                              width: 80,
-                              height: 80,
-                              child: Functions()
-                                  .buildProfileImage(profileImageUrl),
+                          child: AvatarGlow(
+                            endRadius: 70.0,
+                            glowColor: Colors.blue,
+                            duration: const Duration(milliseconds: 2000),
+                            repeat: true,
+                            showTwoGlows: true,
+                            child: ClipOval(
+                              clipBehavior: Clip.hardEdge,
+                              child: SizedBox(
+                                width: 60,
+                                height: 60,
+                                child: Functions()
+                                    .buildProfileImage(profileImageUrl),
+                              ),
                             ),
                           ),
                         ),

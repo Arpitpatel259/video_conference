@@ -17,31 +17,38 @@ class _LoginScreenState extends State<LoginScreen> {
   final _loginFormKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffffffff),
-      body: Align(
-        alignment: Alignment.center,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                Image.asset('assets/logos/password.jpg',
-                    height: 150, width: 150),
-                _headerText("Sign In", 20, Color(0xff3a57e8)),
-                _headerText("Welcome back! Let's get you signed in.", 14,
-                    Color(0xff818181)),
-                _loginCredential(),
-                _forgotPasswordLink(context),
-                _actionButtons(context),
-                _headerText("Or Continue with", 14, Color(0xff9e9e9e)),
-                _googleSignInButton(context),
-              ],
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/logos/createAccountbackground.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Align(
+          alignment: Alignment.center,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40),
+                  _headerText("Sign In", 40, const Color(0xff3a57e8)),
+                  _headerText("Welcome back! Let's get you signed in.", 20,
+                      const Color(0xff818181)),
+                  _loginCredential(),
+                  _forgotPasswordLink(context),
+                  _actionButtons(context),
+                  _headerText("Or Continue with", 16, const Color(0xff9e9e9e)),
+                  _googleSignInButton(context),
+                ],
+              ),
             ),
           ),
         ),
@@ -67,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: GestureDetector(
         onTap: () => Navigator.push(
             context, MaterialPageRoute(builder: (_) => const ForgotPassword())),
-        child: _headerText("Forgot Password?", 14, Color(0xff9e9e9e)),
+        child: _headerText("Forgot Password?", 16, const Color(0xff9e9e9e)),
       ),
     );
   }
@@ -101,15 +108,16 @@ class _LoginScreenState extends State<LoginScreen> {
         controller: controller,
         obscureText: obscureText,
         validator: validator,
+        style: const TextStyle(
+          color: Colors.black,
+        ),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Color(0xff9e9e9e)),
+              fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
           border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(4),
-              borderSide: BorderSide(color: Color(0xff9e9e9e), width: 1)),
+              borderSide: const BorderSide(color: Color(0xff9e9e9e), width: 1)),
           suffixIcon: suffixIcon,
         ),
       ),
@@ -126,24 +134,30 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _actionButtons(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 30, 0, 16),
+      padding: const EdgeInsets.fromLTRB(0, 15, 0, 16),
       child: Row(
         children: [
           _actionButton(
               "Sign Up",
               const Color(0xffffffff),
+              Colors.black,
               () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const RegisterScreen()))),
           const SizedBox(width: 16),
-          _actionButton("Login", const Color(0xff3a57e8), () async {
+          _actionButton("Login", const Color(0xff3a57e8), Colors.white,
+              () async {
             if (_loginFormKey.currentState!.validate()) {
-              showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (_) =>
-                      const Center(child: CircularProgressIndicator()));
-              await Functions().userLogin(
-                  emailController.text, passwordController.text, context);
+              setState(() {
+                _isLoading = true; // Set loading state
+              });
+              try {
+                await Functions().userLogin(
+                    emailController.text, passwordController.text, context);
+              } finally {
+                setState(() {
+                  _isLoading = false; // Dismiss loading state
+                });
+              }
             }
           }),
         ],
@@ -151,7 +165,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _actionButton(String text, Color color, VoidCallback onPressed) {
+  Widget _actionButton(
+      String text, Color color, Color? colors, VoidCallback onPressed) {
     return Expanded(
       child: MaterialButton(
         onPressed: onPressed,
@@ -162,7 +177,8 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(16),
         child: Text(
           text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 16, color: colors, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -170,19 +186,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _googleSignInButton(BuildContext context) {
     return GestureDetector(
-      onTap: () async {
-        showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => const Center(child: CircularProgressIndicator()));
-        try {
-          await Functions().signInWithGoogle(context);
-        } catch (e) {
-          Navigator.of(context).pop();
-        }
-      },
+      onTap: () => Functions().signInWithGoogle(context),
       child: Container(
-        margin: const EdgeInsets.all(0),
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
           color: const Color(0xffffffff),
@@ -194,10 +199,15 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Image.asset('assets/logos/google.png', height: 25, width: 25),
             const Padding(
-                padding: EdgeInsets.only(left: 16),
-                child: Text("Google",
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+              padding: EdgeInsets.only(left: 16),
+              child: Text(
+                "Google",
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                    fontSize: 16),
+              ),
+            ),
           ],
         ),
       ),

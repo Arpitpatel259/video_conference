@@ -2,31 +2,38 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:video_conference/ui/Pages/splashScreen.dart';
 
 import 'firebase_options.dart';
+import 'ui/Services/Functions.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  runApp(const MyApp());
+  final Functions authMethods = Functions();
+  Widget homeWidget = await authMethods.checkIfAlreadyLogin();
+  runApp(MyApp(homeWidget: homeWidget));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Widget homeWidget;
+
+  const MyApp({super.key, required this.homeWidget});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Video Conference',
+      title: 'Swan Pair',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(brightness: Brightness.light),
-      darkTheme: ThemeData(brightness: Brightness.dark),
+      theme: ThemeData(
+        brightness: Brightness.light,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+      ),
       themeMode: ThemeMode.system,
-      home: const SplashScreen(),
+      home: homeWidget,
     );
   }
 }

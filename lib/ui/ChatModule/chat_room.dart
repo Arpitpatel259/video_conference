@@ -22,8 +22,10 @@ class _ChatRoomState extends State<ChatRoom> {
   final TextEditingController _messageController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ScrollController _scrollController = ScrollController();
   File? _imageFile;
 
+  // Fetch image from gallery
   Future<void> _getImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -34,6 +36,7 @@ class _ChatRoomState extends State<ChatRoom> {
     }
   }
 
+  // Upload image to Firestore
   Future<void> _uploadImage() async {
     if (_imageFile == null) return;
 
@@ -75,6 +78,7 @@ class _ChatRoomState extends State<ChatRoom> {
     }
   }
 
+  // Send text message
   Future<void> _sendMessage() async {
     if (_messageController.text.isNotEmpty) {
       await _firestore
@@ -88,6 +92,18 @@ class _ChatRoomState extends State<ChatRoom> {
         "time": FieldValue.serverTimestamp(),
       });
       _messageController.clear();
+      _scrollToBottom();
+    }
+  }
+
+  // Automatically scroll to the latest message
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
@@ -108,18 +124,45 @@ class _ChatRoomState extends State<ChatRoom> {
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              final status = snapshot.data!['status'] ?? 'Offline';
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              final data = snapshot.data!.data() as Map<String, dynamic>?;
+              final status = data?['status'] ?? 'Offline';
+              final profileImage =
+                  data?['imgUrl'] ?? 'default_profile_image_url';
+
+              return Row(
                 children: [
-                  Text(
-                    widget.userMap['name'],
-                    style: const TextStyle(color: Colors.white),
+                  // GestureDetector to handle tap on the profile picture
+                  GestureDetector(
+                    onTap: () {
+                      // Navigate to ProfileViewPage when the profile picture is tapped
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ProfileViewPage(userMap: widget.userMap),
+                        ),
+                      );
+                    },
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(profileImage),
+                      radius: 18,
+                    ),
                   ),
-                  Text(
-                    status,
-                    textAlign: TextAlign.start,
-                    style: const TextStyle(fontSize: 14, color: Colors.white),
+                  const SizedBox(width: 10), // Spacing between image and text
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.userMap['name'],
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      Text(
+                        status,
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.white),
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -127,6 +170,20 @@ class _ChatRoomState extends State<ChatRoom> {
             return Container();
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.phone),
+            onPressed: () {
+              // Call functionality
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam),
+            onPressed: () {
+              // Video call functionality
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -141,7 +198,11 @@ class _ChatRoomState extends State<ChatRoom> {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   final docs = snapshot.data!.docs;
+                  WidgetsBinding.instance
+                      .addPostFrameCallback((_) => _scrollToBottom());
+
                   return ListView.builder(
+                    controller: _scrollController,
                     itemCount: docs.length,
                     itemBuilder: (context, index) {
                       final map = docs[index].data() as Map<String, dynamic>;
@@ -159,54 +220,53 @@ class _ChatRoomState extends State<ChatRoom> {
     );
   }
 
+  // Build message input widget
   Widget _buildMessageInput(Size size) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Row(
         children: [
-          // Text Input with Rounded Corners
           Expanded(
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(25.0),
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                ),
+                border: Border.all(color: Colors.grey.shade300),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _messageController,
+                      style: const TextStyle(
+                        color: Colors.black,
+                      ),
                       decoration: const InputDecoration(
                         hintText: "Type a message",
+                        hintStyle: TextStyle(
+                          color: Colors.black,
+                        ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
                           vertical: 10.0,
                           horizontal: 20.0,
                         ),
                       ),
-                      onChanged: (value) {
-                        // Handle typing event if needed
-                      },
                     ),
                   ),
-                  // Add the Camera icon
                   IconButton(
                     onPressed: _getImage,
-                    icon: const Icon(Icons.camera_alt, color: Colors.grey),
+                    icon: const Icon(Icons.camera_alt, color: Colors.blue),
                   ),
                 ],
               ),
             ),
           ),
           const SizedBox(width: 8),
-          // Send Button
           Container(
             padding: const EdgeInsets.all(0),
             decoration: const BoxDecoration(
-              color: Colors.blue, // WhatsApp send button color
+              color: Colors.blue,
               shape: BoxShape.circle,
             ),
             child: IconButton(
@@ -219,16 +279,15 @@ class _ChatRoomState extends State<ChatRoom> {
     );
   }
 
+  // Build message widget
   Widget _buildMessage(Size size, Map<String, dynamic> map) {
     final isCurrentUser = map['sendby'] == _auth.currentUser!.displayName;
-
-    // Extract and format the timestamp
     final timestamp = map['time'] as Timestamp?;
     String timeString = "";
+
     if (timestamp != null) {
       final dateTime = timestamp.toDate();
-      timeString =
-          DateFormat('hh:mm a').format(dateTime); // Format to 12-hour format
+      timeString = DateFormat('hh:mm a').format(dateTime);
     }
 
     final messageWidget = map['type'] == "text"
@@ -255,6 +314,7 @@ class _ChatRoomState extends State<ChatRoom> {
     );
   }
 
+  // Build text message widget
   Widget _buildTextMessage(
       String message, bool isCurrentUser, String timeString) {
     return Container(
@@ -264,23 +324,18 @@ class _ChatRoomState extends State<ChatRoom> {
         borderRadius: BorderRadius.circular(15),
         color: isCurrentUser ? Colors.blue : Colors.grey.shade200,
       ),
-      child: Column(
-        crossAxisAlignment:
-            isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Text(
-            message,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: isCurrentUser ? Colors.white : Colors.black87,
-            ),
-          ),
-        ],
+      child: Text(
+        message,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: isCurrentUser ? Colors.white : Colors.black87,
+        ),
       ),
     );
   }
 
+  // Build image message widget
   Widget _buildImageMessage(
       String imageUrl, bool isCurrentUser, String timeString) {
     return InkWell(
@@ -329,8 +384,123 @@ class ShowImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(),
       body: Center(
         child: Image.network(imageUrl, fit: BoxFit.contain),
+      ),
+    );
+  }
+}
+
+class ProfileViewPage extends StatelessWidget {
+  final Map<String, dynamic> userMap;
+
+  const ProfileViewPage({Key? key, required this.userMap}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Profile"),
+        backgroundColor: const Color(0xff3a57e8),
+        elevation: 0,
+      ),
+      backgroundColor: Colors.white, // Set background to white
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            // Profile Image with elevation
+            Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.4),
+                      blurRadius: 10,
+                      spreadRadius: 3,
+                    ),
+                  ],
+                ),
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(
+                      userMap['imgUrl'] ?? 'default_profile_image_url'),
+                  radius: 60, // Larger for profile view
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // User Name
+            Text(
+              userMap['name'] ?? 'Name not available',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Status
+            Text(
+              userMap['status'] ?? 'Offline',
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 30),
+            // Divider for better layout structure
+            const Divider(thickness: 1, color: Colors.grey),
+            const SizedBox(height: 20),
+            // Call and Video Call Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Call functionality
+                  },
+                  icon: const Icon(Icons.phone, size: 24),
+                  label: const Text('Call'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff3a57e8),
+                    // Call button color
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 20,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Video call functionality
+                  },
+                  icon: const Icon(Icons.videocam, size: 24),
+                  label: const Text('Video Call'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff3a57e8),
+                    // Video call button color
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 20,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

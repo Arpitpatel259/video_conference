@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-
-import '../Services/agora_client.dart';
+import 'package:video_conference/ui/MeetingScreens/meeting_later.dart';
 
 class MeetingScreen extends StatefulWidget {
   const MeetingScreen({super.key});
@@ -135,7 +134,7 @@ class _MeetingScreenState extends State<MeetingScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      // Ensure the bottom sheet height adjusts with the keyboard
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -144,6 +143,9 @@ class _MeetingScreenState extends State<MeetingScreen> {
           child: Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 16,
+              right: 16,
+              top: 16,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -151,37 +153,78 @@ class _MeetingScreenState extends State<MeetingScreen> {
                 const Text(
                   'Enter Joining Code',
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 TextField(
                   autofocus: true,
-                  decoration: const InputDecoration(
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                  decoration: InputDecoration(
                     hintText: 'Enter code',
-                    border: OutlineInputBorder(),
+                    hintStyle: TextStyle(
+                      color: Colors.black,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
                     // Handle code input change if needed
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Close the bottom sheet
-                      },
-                      child: const Text('Cancel'),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[400],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context); // Close the bottom sheet
+                          },
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Next'),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Next',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -219,12 +262,17 @@ class _MeetingScreenState extends State<MeetingScreen> {
                     'Create a Meeting for Later',
                     style: TextStyle(
                       fontSize: 16,
+                      color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   onTap: () {
                     // Add action for scheduling a meeting
-                    Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScheduleMeetingPage(),
+                        ));
                   },
                 ),
                 const Divider(),
@@ -235,6 +283,7 @@ class _MeetingScreenState extends State<MeetingScreen> {
                     'Get a Meeting Link to Share',
                     style: TextStyle(
                       fontSize: 16,
+                      color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -252,17 +301,20 @@ class _MeetingScreenState extends State<MeetingScreen> {
                     'Start an Instant Meeting',
                     style: TextStyle(
                       fontSize: 16,
+                      color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   onTap: () {
-                    // Add action for starting an instant meeting
-                    Navigator.push(
+                    //Add action for starting an instant meeting
+                    /* Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AgoraClientVideo(),
+                        builder: (context) => const VideoConferencePage(
+                          conferenceID: '111',
+                        ),
                       ),
-                    );
+                    );*/
                   },
                 ),
               ],

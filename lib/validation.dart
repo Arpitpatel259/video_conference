@@ -3,7 +3,8 @@
 
 extension extString on String {
   bool get isValidEmail {
-    final emailRegExp = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+    final emailRegExp =
+        RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
     return emailRegExp.hasMatch(this);
   }
 
@@ -13,7 +14,8 @@ extension extString on String {
   }
 
   bool get isValidPassword {
-    final passwordRegExp = RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$&*~]).{8,}$');
+    final passwordRegExp =
+        RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$&*~]).{8,}$');
     return passwordRegExp.hasMatch(this);
   }
 
@@ -22,3 +24,7 @@ extension extString on String {
     return phoneRegExp.hasMatch(this);
   }
 }
+
+int APPID = 1854289249;
+String APPSIGN =
+    "52f1161e2759186fa7a211df68c71e9fe38af061ceb0fc0dc85e8d50610e8dbb";

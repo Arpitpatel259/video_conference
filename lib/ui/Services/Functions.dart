@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_conference/MainPage.dart';
 import 'package:video_conference/ui/Pages/Splash/splash_screen.dart';
 import 'package:video_conference/ui/Services/under_maintainance.dart';
+import 'package:video_conference/widget/common_snackbar.dart';
 
 import '../../firebase_options.dart';
 import 'DatabaseMethod.dart';
@@ -66,6 +67,7 @@ class Functions {
       if (kDebugMode) {
         print('Error checking login status: $e');
       }
+
       // Return an error screen or a default screen
       return const Scaffold(
         body: Center(
@@ -89,8 +91,14 @@ class Functions {
         );
       }
 
+      var scopes = [
+        'email',
+      ];
+
+      GoogleSignIn googleSignIn = GoogleSignIn(scopes: scopes);
+
       final GoogleSignInAccount? googleSignInAccount =
-          await _googleSignIn.signIn();
+          await googleSignIn.signIn();
 
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
@@ -122,18 +130,9 @@ class Functions {
             await prefs.setString('name', user.displayName.toString());
             await prefs.setString('imgUrl', user.photoURL.toString());
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text("You Have Been Logged In Successfully!"),
-                backgroundColor: Colors.teal,
-                behavior: SnackBarBehavior.floating,
-                action: SnackBarAction(
-                  label: 'Dismiss',
-                  disabledTextColor: Colors.white,
-                  textColor: Colors.yellow,
-                  onPressed: () {},
-                ),
-              ),
+            CustomSnackBar.show(
+              context,
+              'You Have Been Logged In Successfully!',
             );
 
             Navigator.pushAndRemoveUntil(
@@ -197,97 +196,6 @@ class Functions {
   }
 
   //Login with Email/Password
-  /*Future<void> userLogin(
-      String email, String password, BuildContext context) async {
-    try {
-      UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
-
-      if (userCredential.user != null) {
-        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-            .collection('User')
-            .doc(userCredential.user!.uid)
-            .get();
-
-        if (userSnapshot.exists) {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setBool('isLoggedIn', true);
-          await prefs.setString("email", userSnapshot['email']);
-          await prefs.setString("name", userSnapshot['name']);
-          await prefs.setString("userId", userSnapshot.id);
-          await prefs.setString("imgUrl", userSnapshot['imgUrl'] ?? "");
-          await prefs.setString("isAdded", userSnapshot['isAdded'] ?? "");
-          await prefs.setString("status", userSnapshot['status'] ?? "");
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text("You Have Been Logged In Successfully!"),
-              backgroundColor: Colors.teal,
-              behavior: SnackBarBehavior.floating,
-              action: SnackBarAction(
-                label: 'Dismiss',
-                disabledTextColor: Colors.white,
-                textColor: Colors.yellow,
-                onPressed: () {},
-              ),
-            ),
-          );
-
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-                builder: (context) => const DashBoard(
-                      initialIndex: 0,
-                    )),
-            (Route<dynamic> route) => false,
-          );
-        } else {
-          throw Exception("User data not found in Firestore");
-        }
-      }
-    } on FirebaseAuthException catch (e) {
-      String errorMessage;
-      if (e.code == 'user-not-found') {
-        errorMessage = "No User Found for that Email";
-      } else if (e.code == 'wrong-password') {
-        errorMessage = "Wrong Password Provided by You";
-      } else if (e.code == 'invalid-email') {
-        errorMessage = "Invalid Email Provided by You";
-      } else {
-        errorMessage = "An unknown error occurred";
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.teal,
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Dismiss',
-            disabledTextColor: Colors.white,
-            textColor: Colors.yellow,
-            onPressed: () {},
-          ),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-              'An error occurred while logging in. Please try again.'),
-          backgroundColor: Colors.teal,
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Dismiss',
-            disabledTextColor: Colors.white,
-            textColor: Colors.yellow,
-            onPressed: () {},
-          ),
-        ),
-      );
-    }
-  }
-*/
-
-  //Login with Email/Password
   Future<void> userLogin(
       String email, String password, BuildContext context) async {
     try {
@@ -308,18 +216,9 @@ class Functions {
           await prefs.setString("userId", userSnapshot.id);
           await prefs.setString("imgUrl", userSnapshot['imgUrl'] ?? "");
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text("You Have Been Logged In Successfully!"),
-              backgroundColor: Colors.teal,
-              behavior: SnackBarBehavior.floating,
-              action: SnackBarAction(
-                label: 'Dismiss',
-                disabledTextColor: Colors.white,
-                textColor: Colors.yellow,
-                onPressed: () {},
-              ),
-            ),
+          CustomSnackBar.show(
+            context,
+            'You Have Been Logged In Successfully!',
           );
 
           Navigator.of(context).pushAndRemoveUntil(
@@ -341,33 +240,14 @@ class Functions {
       } else {
         errorMessage = "An unknown error occurred";
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.teal,
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Dismiss',
-            disabledTextColor: Colors.white,
-            textColor: Colors.yellow,
-            onPressed: () {},
-          ),
-        ),
+      CustomSnackBar.show(
+        context,
+        errorMessage,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-              'An error occurred while logging in. Please try again.'),
-          backgroundColor: Colors.teal,
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Dismiss',
-            disabledTextColor: Colors.white,
-            textColor: Colors.yellow,
-            onPressed: () {},
-          ),
-        ),
+      CustomSnackBar.show(
+        context,
+        "An error occurred while logging in. Please try again.",
       );
     }
   }
@@ -457,6 +337,63 @@ class Functions {
       if (kDebugMode) {
         print('Error during logout: $e');
       }
+    }
+  }
+
+  //Reset Password Using Link
+  Future<void> resetPasswordAndNotify(
+      String email, BuildContext context) async {
+    try {
+      // Directly query Firestore to check if the email exists
+      QuerySnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+
+      if (userSnapshot.docs.isEmpty) {
+        // If no document is found, inform the user
+        CustomSnackBar.show(
+          context,
+          'No user found for that email in Firestore.',
+        );
+        return;
+      }
+
+      // Since the user exists in Firestore, we can proceed to send a reset email
+      // Send password reset email
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      // Update the Firestore document to indicate a password reset was requested
+      DocumentReference userDocRef = userSnapshot.docs.first.reference;
+
+      await userDocRef.update({
+        'passwordResetRequested': true,
+        'lastPasswordResetRequest': FieldValue.serverTimestamp(),
+      });
+
+      CustomSnackBar.show(
+        context,
+        'Password reset email sent! Check your inbox.',
+      );
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      if (e.code == 'invalid-email') {
+        errorMessage = "Invalid Email Provided by You";
+      } else if (e.code == 'user-not-found') {
+        errorMessage = "No User Found for that Email";
+      } else {
+        errorMessage = "An unknown error occurred";
+      }
+      CustomSnackBar.show(
+        context,
+        errorMessage,
+      );
+    } catch (e) {
+      CustomSnackBar.show(
+        context,
+        'An error occurred while processing your request. Please try again',
+      );
     }
   }
 }

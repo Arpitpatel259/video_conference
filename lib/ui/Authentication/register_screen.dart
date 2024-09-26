@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:video_conference/validation.dart';
 
+import '../../widget/common_snackbar.dart';
+import '../../widget/common_textfield.dart';
 import '../Services/Functions.dart';
 import 'login_screen.dart';
 
@@ -26,239 +27,111 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/logos/createAccountbackground.png'),
-            // Add your background image here
-            fit: BoxFit.cover, // This makes the image cover the whole screen
+      body: Stack(
+        children: [
+          // Background image
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/logos/createAccountbackground.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-        ),
-        child: Align(
-          alignment: Alignment.center,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+          // Back button
+          Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 40, left: 16),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
+          ),
+
+          Center(
             child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
                 children: [
-                  const SizedBox(height: 40),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
-                    child: Text(
-                      "Sign Up",
-                      textAlign: TextAlign.start,
-                      overflow: TextOverflow.clip,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontStyle: FontStyle.normal,
-                        fontSize: 40,
-                        color: Color(0xff3a57e8),
-                      ),
+                  ClipOval(
+                    child: Image.asset(
+                      'assets/logos/launch_icon.png',
+                      height: 80,
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(30, 8, 30, 30),
-                    child: Text(
+                  const SizedBox(height: 16),
+                  _headerText("Sign Up!", 32, const Color(0xff3a57e8)),
+                  const SizedBox(height: 8),
+                  _subHeaderText(
                       "Join us today! Create your account and start exploring.",
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.clip,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w400,
-                        fontStyle: FontStyle.normal,
-                        fontSize: 20,
-                        color: Color(0xff818181),
-                      ),
-                    ),
-                  ),
+                      18,
+                      Colors.grey),
+                  const SizedBox(height: 32),
                   Form(
                     key: _registerFormKey,
                     child: Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                          child: TextFormField(
+                        CommonTextfield(
                             controller: nameController,
+                            label: "Name",
                             obscureText: false,
-                            textAlign: TextAlign.start,
-                            maxLines: 1,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.normal,
-                              fontSize: 16,
-                              color: Color(0xff000000),
-                            ),
-                            validator: (val) {
-                              if (val == null || val.isEmpty) {
+                            validator: (value) {
+                              if (value == null || value.isEmpty)
                                 return 'Please Enter Your Name';
-                              }
-                              if (!val.isValidName) {
+                              if (!value.isValidEmail)
                                 return 'Please Enter Valid Name';
-                              }
                               return null;
-                            },
-                            decoration: InputDecoration(
-                              disabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              labelText: "Name",
-                              labelStyle: const TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontStyle: FontStyle.normal,
-                                fontSize: 16,
-                                color: Color(0xff9e9e9e),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0x00ffffff),
-                              isDense: false,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 12),
-                            ),
-                          ),
+                            }),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                          child: CommonTextfield(
+                              controller: emailController,
+                              label: "Email",
+                              obscureText: false,
+                              validator: (value) {
+                                if (value == null || value.isEmpty)
+                                  return 'Please Enter Email';
+                                if (!value.isValidEmail)
+                                  return 'Please Enter Valid Email Id';
+                                return null;
+                              }),
                         ),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                          child: TextFormField(
-                            controller: emailController,
-                            obscureText: false,
-                            textAlign: TextAlign.start,
-                            maxLines: 1,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.normal,
-                              fontSize: 16,
-                              color: Color(0xff000000),
-                            ),
-                            validator: (val) {
-                              if (val == null || val.isEmpty) {
-                                return 'Please Enter Email';
-                              }
-                              if (!val.isValidEmail) {
-                                return 'Please Enter Valid Email Id';
-                              }
-                              return null;
-                            },
-                            decoration: InputDecoration(
-                              disabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              labelText: "Email",
-                              labelStyle: const TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontStyle: FontStyle.normal,
-                                fontSize: 16,
-                                color: Color(0xff9e9e9e),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0x00ffffff),
-                              isDense: false,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 12),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                          child: TextFormField(
+                          child: CommonTextfield(
                             controller: passwordController,
+                            label: "Password",
                             obscureText: _isObscure,
-                            textAlign: TextAlign.start,
-                            maxLines: 1,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.normal,
-                              fontSize: 16,
-                              color: Color(0xff000000),
-                            ),
-                            validator: (val) {
-                              if (val == null || val.isEmpty) {
+                            validator: (value) {
+                              if (value == null || value.isEmpty)
                                 return 'Please Enter Password';
-                              }
-                              if (!val.isValidPassword) {
+                              ;
+                              if (!value.isValidEmail)
                                 return 'Please Enter Valid Password';
-                              }
                               return null;
                             },
-                            decoration: InputDecoration(
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                    _isObscure
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                    color:
-                                        Theme.of(context).colorScheme.primary),
-                                onPressed: () =>
-                                    setState(() => _isObscure = !_isObscure),
-                              ),
-                              disabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              labelText: "Password",
-                              labelStyle: const TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontStyle: FontStyle.normal,
-                                fontSize: 16,
-                                color: Color(0xff9e9e9e),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0x00ffffff),
-                              isDense: false,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 12),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                  _isObscure
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Theme.of(context).colorScheme.primary),
+                              onPressed: () =>
+                                  setState(() => _isObscure = !_isObscure),
                             ),
                           ),
                         ),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(0, 20, 0, 30),
-                          child: TextFormField(
+                          child: CommonTextfield(
                             controller: cPasswordController,
+                            label: "Confirm Password",
                             obscureText: _isObscure1,
-                            textAlign: TextAlign.start,
-                            maxLines: 1,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.normal,
-                              fontSize: 16,
-                              color: Color(0xff000000),
-                            ),
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return 'Please Enter Confirm Password';
@@ -271,230 +144,150 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               }
                               return null;
                             },
-                            decoration: InputDecoration(
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                    _isObscure1
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                    color:
-                                        Theme.of(context).colorScheme.primary),
-                                onPressed: () =>
-                                    setState(() => _isObscure1 = !_isObscure1),
-                              ),
-                              disabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide: const BorderSide(
-                                    color: Color(0xff9e9e9e), width: 1),
-                              ),
-                              labelText: "Confirm Password",
-                              labelStyle: const TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontStyle: FontStyle.normal,
-                                fontSize: 16,
-                                color: Color(0xff9e9e9e),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0x00ffffff),
-                              isDense: false,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 12),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                  _isObscure1
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Theme.of(context).colorScheme.primary),
+                              onPressed: () =>
+                                  setState(() => _isObscure1 = !_isObscure1),
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: MaterialButton(
-                          onPressed: () async {
-                            if (_registerFormKey.currentState!.validate()) {
-                              // Store local references to avoid using context across async gaps
-                              final navigator = Navigator.of(context);
-                              final scaffoldMessenger =
-                                  ScaffoldMessenger.of(context);
-
-                              setState(() {
-                                email = emailController.text;
-                                password = passwordController.text;
-                                confirmPassword = cPasswordController.text;
-                              });
-
-                              if (nameController.text.isNotEmpty &&
-                                  emailController.text.isNotEmpty &&
-                                  passwordController.text.isNotEmpty &&
-                                  cPasswordController.text.isNotEmpty) {
-                                if (passwordController.text ==
-                                    cPasswordController.text) {
-                                  showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (context) => const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  );
-
-                                  try {
-                                    await Functions().registerUser(
-                                        nameController.text,
-                                        email,
-                                        password,
-                                        confirmPassword);
-
-                                    // Check if the widget is still mounted before using context
-                                    if (mounted) {
-                                      scaffoldMessenger.showSnackBar(
-                                        SnackBar(
-                                          content: const Text(
-                                              "Registration Successful"),
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .secondary,
-                                          behavior: SnackBarBehavior.floating,
-                                          action: SnackBarAction(
-                                            label: 'Dismiss',
-                                            onPressed: () {},
-                                          ),
-                                        ),
-                                      );
-
-                                      navigator.pushReplacement(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const LoginScreen()),
-                                      );
-                                    }
-                                  } catch (e) {
-                                    // Handle registration failure
-                                    if (mounted) {
-                                      scaffoldMessenger.showSnackBar(
-                                        SnackBar(
-                                          content: const Text(
-                                              "Registration Unsuccessful. Please Try Again!"),
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .secondary,
-                                          behavior: SnackBarBehavior.floating,
-                                          action: SnackBarAction(
-                                            label: 'Dismiss',
-                                            onPressed: () {},
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                } else {
-                                  // Handle password mismatch
-                                  scaffoldMessenger.showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          const Text("Passwords do not match!"),
-                                      backgroundColor: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                      behavior: SnackBarBehavior.floating,
-                                      action: SnackBarAction(
-                                        label: 'Dismiss',
-                                        onPressed: () {},
-                                      ),
-                                    ),
-                                  );
-                                }
-                              } else {
-                                // Handle missing fields
-                                scaffoldMessenger.showSnackBar(
-                                  SnackBar(
-                                    content: const Text(
-                                        "Please fill all the fields!"),
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.secondary,
-                                    behavior: SnackBarBehavior.floating,
-                                    action: SnackBarAction(
-                                      label: 'Dismiss',
-                                      onPressed: () {},
-                                    ),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          color: const Color(0xff3a57e8),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          padding: const EdgeInsets.all(16),
-                          textColor: const Color(0xffffffff),
-                          height: 40,
-                          minWidth: 140,
-                          child: const Text(
-                            "Sign Up",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.normal,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: MaterialButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const LoginScreen()),
-                            );
-                          },
-                          color: const Color(0xffffffff),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            side: const BorderSide(
-                                color: Color(0xff9e9e9e), width: 1),
-                          ),
-                          padding: const EdgeInsets.all(16),
-                          textColor: const Color(0xff000000),
-                          height: 40,
-                          minWidth: 140,
-                          child: const Text(
-                            "Login",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.normal,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  _actionButtons(context),
                   const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _actionButton("Login", Colors.white, const Color(0xff3a57e8),
+              () async {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+            );
+          }),
         ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _actionButton("Sign Up", const Color(0xff3a57e8), Colors.white,
+              () async {
+            if (_registerFormKey.currentState!.validate()) {
+              // Store local references to avoid using context across async gaps
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+              setState(() {
+                email = emailController.text;
+                password = passwordController.text;
+                confirmPassword = cPasswordController.text;
+              });
+
+              if (nameController.text.isNotEmpty &&
+                  emailController.text.isNotEmpty &&
+                  passwordController.text.isNotEmpty &&
+                  cPasswordController.text.isNotEmpty) {
+                if (passwordController.text == cPasswordController.text) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+
+                  try {
+                    await Functions().registerUser(
+                        nameController.text, email, password, confirmPassword);
+
+                    // Check if the widget is still mounted before using context
+                    if (mounted) {
+                      CustomSnackBar.show(
+                        context,
+                        'Registration Successful!',
+                      );
+
+                      navigator.pushReplacement(
+                        MaterialPageRoute(
+                            builder: (context) => const LoginScreen()),
+                      );
+                    }
+                  } catch (e) {
+                    // Handle registration failure
+                    if (mounted) {
+                      CustomSnackBar.show(
+                        context,
+                        'Register Unsuccessful. Please try again!',
+                      );
+                    }
+                  }
+                } else {
+                  // Handle password mismatch
+                  CustomSnackBar.show(
+                    context,
+                    'Password Not Match',
+                  );
+                }
+              } else {
+                // Handle missing fields
+                CustomSnackBar.show(
+                  context,
+                  'Please fill up all details!',
+                );
+              }
+            }
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _actionButton(String text, Color backgroundColor, Color textColor,
+      VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        padding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+            fontSize: 16, color: textColor, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _headerText(String text, double fontSize, Color color) {
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+          fontWeight: FontWeight.bold, fontSize: fontSize, color: color),
+    );
+  }
+
+  Widget _subHeaderText(String text, double fontSize, Color color) {
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: fontSize,
+        color: color,
       ),
     );
   }

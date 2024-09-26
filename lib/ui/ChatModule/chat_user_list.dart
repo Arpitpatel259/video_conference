@@ -37,9 +37,6 @@ class _ChatUserListState extends State<ChatUserList> {
     fetchAllUsers();
   }
 
-  List<Map<String, dynamic>> _originalUserDataList = [];
-  List<Map<String, dynamic>> _filteredUserDataList = [];
-
   Future<void> fetchAllUsers() async {
     try {
       final snapshot = await _firestore.collection('User').get();
@@ -96,7 +93,7 @@ class _ChatUserListState extends State<ChatUserList> {
           ValueListenableBuilder(
             valueListenable: _search,
             builder: (context, value, child) {
-              return _buildSearchBar(value ? 70 : 0, value);
+              return _buildSearchBar(value ? 60 : 0, value);
             },
           ),
           isLoading
@@ -113,10 +110,9 @@ class _ChatUserListState extends State<ChatUserList> {
       backgroundColor: const Color(0xff3a57e8),
       iconTheme: const IconThemeData(color: Colors.white),
       automaticallyImplyLeading: true,
-      // Removes the back arrow
       actions: [
         Container(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(6.0),
           decoration: BoxDecoration(
             color: Colors.grey[200],
             shape: BoxShape.circle,
@@ -126,12 +122,11 @@ class _ChatUserListState extends State<ChatUserList> {
             builder: (context, value, child) {
               return InkWell(
                 onTap: () {
-                  if (value) {
+                  if (_search.value) {
                     searchController.clear();
                     FocusScope.of(context).unfocus();
                     _search.value = false;
-                    _filteredUserDataList = List.from(
-                        _originalUserDataList); // Reset the filtered list
+                    filteredUsers = List.from(users); // Reset the filtered list
                     setState(() {});
                   } else {
                     _search.value = true;
@@ -140,12 +135,12 @@ class _ChatUserListState extends State<ChatUserList> {
                 child: Icon(
                   value ? Icons.close : Icons.search,
                   color: Colors.black,
-                  size: 24,
                 ),
               );
             },
           ),
         ),
+        const SizedBox(width: 10),
       ],
     );
   }
@@ -157,41 +152,38 @@ class _ChatUserListState extends State<ChatUserList> {
         final user = filteredUsers[index];
         if (user['name'] == name) return const SizedBox.shrink();
 
-        return Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: ListTile(
-            leading: Container(
-              height: 60,
-              width: 60,
-              clipBehavior: Clip.antiAlias,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              child: Functions().buildProfileImage(user['imgUrl']),
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
+          leading: Container(
+            height: 50,
+            width: 50,
+            clipBehavior: Clip.antiAlias,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
             ),
-            title: Text(user['name'],
-                style: const TextStyle(
-                    fontSize: 17,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w500)),
-            trailing: IconButton(
-              icon: const Icon(Icons.add, color: Colors.green, size: 30),
-              onPressed: () async {
-                await addUserToChatList(user['id']);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${user['name']} added!')),
-                );
+            child: Functions().buildProfileImage(user['imgUrl']),
+          ),
+          title: Text(user['name'],
+              style: const TextStyle(
+                  fontSize: 17,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500)),
+          trailing: IconButton(
+            icon: const Icon(Icons.add, color: Colors.green, size: 25),
+            onPressed: () async {
+              await addUserToChatList(user['id']);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${user['name']} added!')),
+              );
 
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DashBoard(
-                        initialIndex: 1), // Set to HomeScreen tab (index 1)
-                  ),
-                  (Route<dynamic> route) => false, // Remove all previous routes
-                );
-              },
-            ),
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DashBoard(initialIndex: 1),
+                ),
+                (Route<dynamic> route) => false, // Remove all previous routes
+              );
+            },
           ),
         );
       },
@@ -208,45 +200,31 @@ class _ChatUserListState extends State<ChatUserList> {
         width: double.infinity,
         curve: Curves.fastOutSlowIn,
         child: Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(8.0), // Reduced padding
           child: TextFormField(
             controller: searchController,
-            obscureText: false,
-            textAlign: TextAlign.start,
             maxLines: 1,
             onChanged: (value) {
               onSearch(value);
             },
             style: const TextStyle(
-              fontWeight: FontWeight.w400,
               fontSize: 16,
               color: Color(0xff000000),
             ),
             decoration: InputDecoration(
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4.0),
-                borderSide:
-                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4.0),
-                borderSide:
-                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
-              ),
-              enabledBorder: OutlineInputBorder(
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4.0),
                 borderSide:
                     const BorderSide(color: Color(0xff9e9e9e), width: 1),
               ),
               labelText: "Search",
               labelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: Color(0xff9e9e9e),
               ),
               filled: true,
               fillColor: Colors.white,
-              isDense: false,
+              isDense: true,
             ),
           ),
         ),

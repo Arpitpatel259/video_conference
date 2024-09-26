@@ -7,6 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:video_conference/ui/ZegoCloud/zego_audio_call.dart';
+
+import '../Services/Functions.dart';
+import '../ZegoCloud/zego_video_call.dart';
 
 class ChatRoom extends StatefulWidget {
   final Map<String, dynamic> userMap;
@@ -143,9 +147,14 @@ class _ChatRoomState extends State<ChatRoom> {
                         ),
                       );
                     },
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(profileImage),
-                      radius: 18,
+                    child: Container(
+                      height: 50,
+                      width: 50,
+                      clipBehavior: Clip.antiAlias,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: Functions().buildProfileImage(profileImage),
                     ),
                   ),
                   const SizedBox(width: 10), // Spacing between image and text
@@ -175,12 +184,28 @@ class _ChatRoomState extends State<ChatRoom> {
             icon: const Icon(Icons.phone),
             onPressed: () {
               // Call functionality
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ZegoAudioCall(
+                      callId: widget.chatRoomId,
+                      userId: widget.userMap['id'],
+                    ),
+                  ));
             },
           ),
           IconButton(
             icon: const Icon(Icons.videocam),
             onPressed: () {
               // Video call functionality
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ZegoVideoCall(
+                      callId: widget.chatRoomId,
+                      userId: widget.userMap['id'],
+                    ),
+                  ));
             },
           ),
         ],

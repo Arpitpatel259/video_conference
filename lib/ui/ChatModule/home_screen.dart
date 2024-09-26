@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text("Chats", style: TextStyle(color: Colors.white)),
         actions: [
           Container(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(6.0),
             decoration: BoxDecoration(
               color: Colors.grey[200],
               shape: BoxShape.circle,
@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
@@ -126,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ValueListenableBuilder(
             valueListenable: _isSearched,
             builder: (context, value, child) {
-              return _buildSearchBar(value ? 70 : 0, value);
+              return _buildSearchBar(value ? 60 : 0, value);
             },
           ),
           Expanded(
@@ -137,15 +137,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: _filteredUserDataList.length,
                         itemBuilder: (context, index) {
                           final user = _filteredUserDataList[index];
-                          if (user['name'] == _name)
+                          if (user['name'] == _name) {
                             return const SizedBox.shrink();
+                          }
 
                           return ListTile(
                             contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 8.0),
+                                horizontal: 12.0, vertical: 4.0),
                             leading: Container(
-                              height: 50,
-                              width: 50,
+                              height: 48,
+                              width: 48,
                               clipBehavior: Clip.antiAlias,
                               decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
@@ -208,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
         width: double.infinity,
         curve: Curves.fastOutSlowIn,
         child: Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(8.0),
           child: TextFormField(
             controller: _searchController,
             obscureText: false,
@@ -223,17 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Color(0xff000000),
             ),
             decoration: InputDecoration(
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4.0),
-                borderSide:
-                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4.0),
-                borderSide:
-                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
-              ),
-              enabledBorder: OutlineInputBorder(
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4.0),
                 borderSide:
                     const BorderSide(color: Color(0xff9e9e9e), width: 1),
@@ -246,7 +237,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               filled: true,
               fillColor: Colors.white,
-              isDense: false,
+              isDense: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
             ),
           ),
         ),

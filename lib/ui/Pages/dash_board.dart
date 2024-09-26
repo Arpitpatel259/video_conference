@@ -66,29 +66,31 @@ class _DashBoardState extends State<DashBoard> {
         unselectedItemColor: Colors.grey.shade400,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        elevation: 2,
+        elevation: 10,
+        // Increased elevation for a shadow effect
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
         items: [
           const BottomNavigationBarItem(
-            label: 'Home', // Home tab
-            icon: Icon(Icons.home_outlined),
+            label: 'Meetings', // Renamed for clarity
+            icon: Icon(
+                Icons.event_outlined), // Changed icon for better representation
           ),
           const BottomNavigationBarItem(
-            label: 'Chat', // Chat tab
+            label: 'Chat',
             icon: Icon(Icons.chat_outlined),
           ),
           BottomNavigationBarItem(
-            label: 'Profile', // Settings tab
+            label: 'Profile',
             icon: SizedBox(
-              width: 24, // Define a specific size for the icon
-              height: 24,
+              width: 30, // Increased size for a more balanced look
+              height: 30,
               child: ClipOval(
                 clipBehavior: Clip.hardEdge,
                 child: Functions().buildProfileImage(profileImageUrl),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

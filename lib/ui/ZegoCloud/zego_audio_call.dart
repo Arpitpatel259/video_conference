@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:video_conference/validation.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
-class ZegoVideoCall extends StatefulWidget {
+class ZegoAudioCall extends StatefulWidget {
   final String callId;
   final String userId;
 
-  const ZegoVideoCall({super.key, required this.callId, required this.userId});
+  const ZegoAudioCall({super.key, required this.callId, required this.userId});
 
   @override
-  State<ZegoVideoCall> createState() => _ZegoVideoCallState();
+  State<ZegoAudioCall> createState() => _ZegoAudioCallState();
 }
 
-class _ZegoVideoCallState extends State<ZegoVideoCall> {
+class _ZegoAudioCallState extends State<ZegoAudioCall> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -22,7 +22,7 @@ class _ZegoVideoCallState extends State<ZegoVideoCall> {
         userID: widget.userId,
         userName: "User: ${widget.userId}",
         callID: widget.callId,
-        config: ZegoUIKitPrebuiltCallConfig.oneOnOneVideoCall(),
+        config: ZegoUIKitPrebuiltCallConfig.oneOnOneVoiceCall(),
       ),
     );
   }

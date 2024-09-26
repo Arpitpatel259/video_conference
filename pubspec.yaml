@@ -49,7 +49,7 @@ dependencies:
   carousel_slider: ^5.0.0
   google_sign_in: ^6.2.1
   avatar_glow: ^2.0.0
-  #zego_uikit_prebuilt_call: ^3.18.0
+  zego_uikit_prebuilt_call: ^4.15.13
 
 
 dev_dependencies:
@@ -64,10 +64,11 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   flutter_launcher_icons: ^0.13.1
 
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logos/LOGO2.png"
+  image_path: "assets/logos/launch_icon.png"
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

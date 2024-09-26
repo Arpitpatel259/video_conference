@@ -27,8 +27,7 @@ class _TodayMeetingsScreenState extends State<TodayMeetingsScreen> {
     super.initState();
     _refreshUserData();
     _search.addListener(() {
-      setState(
-          () {}); // This will trigger a rebuild when the search text changes
+      setState(() {});
     });
   }
 
@@ -87,61 +86,36 @@ class _TodayMeetingsScreenState extends State<TodayMeetingsScreen> {
                 color: Colors.white,
               ),
             ),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    shape: BoxShape.circle,
-                  ),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MeetingScreen(),
-                        ),
-                      );
-                    },
-                    child: const Icon(
-                      Icons.add,
-                      color: Colors.black,
-                      size: 24,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    shape: BoxShape.circle,
-                  ),
-                  child: ValueListenableBuilder(
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+              child: Row(
+                children: [
+                  _buildActionButton(Icons.add, () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MeetingScreen(),
+                      ),
+                    );
+                  }),
+                  const SizedBox(width: 10),
+                  ValueListenableBuilder(
                     valueListenable: isSearched,
                     builder: (context, value, child) {
-                      return InkWell(
-                        onTap: () {
-                          if (value) {
-                            _search.clear();
-                            FocusScope.of(context).unfocus();
-                            isSearched.value = false;
-                            setState(() {});
-                          } else {
-                            isSearched.value = true;
-                          }
-                        },
-                        child: Icon(
-                          value ? Icons.close : Icons.search,
-                          color: Colors.black,
-                          size: 24,
-                        ),
-                      );
+                      return _buildActionButton(
+                          value ? Icons.close : Icons.search, () {
+                        if (value) {
+                          _search.clear();
+                          FocusScope.of(context).unfocus();
+                          isSearched.value = false;
+                        } else {
+                          isSearched.value = true;
+                        }
+                      });
                     },
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -153,7 +127,7 @@ class _TodayMeetingsScreenState extends State<TodayMeetingsScreen> {
             ValueListenableBuilder(
               valueListenable: isSearched,
               builder: (context, value, child) {
-                return animatedContainer(value ? 70 : 0, value ? true : false);
+                return animatedContainer(value ? 70 : 0, value);
               },
             ),
             Expanded(
@@ -181,7 +155,7 @@ class _TodayMeetingsScreenState extends State<TodayMeetingsScreen> {
                           description:
                               meeting['description'] ?? 'No Description',
                           participants: '${meeting['participants'].length}+',
-                          meetingId: meeting['id'] ?? '', // Pass the meeting ID
+                          meetingId: meeting['id'] ?? '',
                         );
                       },
                     ),
@@ -208,51 +182,53 @@ class _TodayMeetingsScreenState extends State<TodayMeetingsScreen> {
           padding: const EdgeInsets.all(10.0),
           child: TextFormField(
             controller: _search,
-            obscureText: false,
-            textAlign: TextAlign.start,
-            maxLines: 1,
             style: const TextStyle(
               fontWeight: FontWeight.w400,
               fontSize: 16,
               color: Color(0xff000000),
             ),
             decoration: InputDecoration(
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4.0),
-                borderSide:
-                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4.0),
-                borderSide:
-                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4.0),
-                borderSide:
-                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
-              ),
-              labelText: "Search",
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
+              hintText: "Search",
+              hintStyle: const TextStyle(
+                fontWeight: FontWeight.w400,
                 fontSize: 16,
                 color: Color(0xff9e9e9e),
               ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide:
+                    const BorderSide(color: Color(0xff9e9e9e), width: 1),
+              ),
               filled: true,
               fillColor: Colors.white,
-              isDense: false,
+              isDense: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
             ),
           ),
         ),
       ),
     );
   }
-}
 
-/// setState
-/// getx
-/// bloc -> blocs, model, repository, authrepo, apiservice, event, state ->
-/// provider
+  Widget _buildActionButton(IconData icon, VoidCallback onPressed) {
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(
+          icon,
+          color: Colors.black,
+          size: 20,
+        ),
+        onPressed: onPressed,
+      ),
+    );
+  }
+}
 
 class MeetingCard extends StatelessWidget {
   final String title;
@@ -260,7 +236,7 @@ class MeetingCard extends StatelessWidget {
   final String date;
   final String description;
   final String participants;
-  final String meetingId; // Added meetingId field
+  final String meetingId;
 
   const MeetingCard({
     required this.title,
@@ -268,7 +244,7 @@ class MeetingCard extends StatelessWidget {
     required this.date,
     required this.participants,
     required this.description,
-    required this.meetingId, // Updated constructor
+    required this.meetingId,
     Key? key,
   }) : super(key: key);
 
@@ -279,22 +255,23 @@ class MeetingCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                MeetingDetailsPage(meetingId: meetingId), // Pass meetingId
+            builder: (context) => MeetingCarousel(
+              images: [],
+            ),
           ),
         );
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.8),
-              spreadRadius: 3,
-              blurRadius: 7,
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
               offset: const Offset(0, 3),
             ),
           ],
@@ -305,26 +282,13 @@ class MeetingCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  date,
-                  style: const TextStyle(
-                    color: Colors.deepPurple,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  time,
-                  style: const TextStyle(
-                    color: Colors.deepPurple,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                _buildDateAndTime(date, time),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               title,
-              overflow: TextOverflow.fade,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -335,154 +299,55 @@ class MeetingCard extends StatelessWidget {
             Text(
               description,
               maxLines: 2,
-              style: const TextStyle(
-                color: Colors.grey,
-              ),
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                const Stack(
-                  clipBehavior: Clip.none,
-                  children: <Widget>[
-                    Positioned(
-                      left: 20,
-                      child: CircleAvatar(
-                        radius: 15,
-                        backgroundImage:
-                            NetworkImage('https://picsum.photos/200'),
-                      ),
-                    ),
-                    Positioned(
-                      left: 10,
-                      child: CircleAvatar(
-                        radius: 15,
-                        backgroundImage:
-                            NetworkImage('https://picsum.photos/200'),
-                      ),
-                    ),
-                    CircleAvatar(
-                      radius: 15,
-                      backgroundImage:
-                          NetworkImage('https://picsum.photos/200'),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 25),
-                Text(
-                  participants,
-                  style: const TextStyle(
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
+            _buildParticipants(participants),
           ],
         ),
       ),
     );
   }
-}
 
-class MeetingDetailsPage extends StatefulWidget {
-  final String meetingId;
-
-  const MeetingDetailsPage({Key? key, required this.meetingId})
-      : super(key: key);
-
-  @override
-  _MeetingDetailsPageState createState() => _MeetingDetailsPageState();
-}
-
-class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 2,
-        backgroundColor: const Color(0xff3a57e8),
-        iconTheme: const IconThemeData(color: Colors.white),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
+  Widget _buildDateAndTime(String date, String time) {
+    return Row(
+      children: [
+        Text(
+          date,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black54,
+          ),
         ),
-        title: const Text(
-          'Meeting Details',
-          style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+        const SizedBox(width: 10),
+        Text(
+          time,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black54,
+          ),
         ),
-      ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance
-            .collection('meetings')
-            .doc(widget.meetingId)
-            .get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('Meeting not found.'));
-          }
+      ],
+    );
+  }
 
-          final data = snapshot.data!.data() as Map<String, dynamic>;
-          final images = List<String>.from(
-              data['images'] ?? []); // Convert to List<String>
-
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  MeetingCarousel(images: images), // Pass the converted list
-                  Text(
-                    data['title'],
-                    style: const TextStyle(
-                      fontSize: 24,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Row for Date and Time with spaceBetween
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Date: ${data['date']}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        'Time: ${data['time']}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    data['description'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                      height: 1.5,
-                    ),
-                    textAlign: TextAlign.justify,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+  Widget _buildParticipants(String participants) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          '$participants participants',
+          style: const TextStyle(color: Colors.black54),
+        ),
+        const Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: Colors.grey,
+        ),
+      ],
     );
   }
 }

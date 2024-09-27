@@ -14,6 +14,15 @@ class CustomSnackBar {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
+      // Add a custom dismiss behavior
+      action: SnackBarAction(
+        label: 'Dismiss',
+        textColor: Colors.white,
+        onPressed: () {
+          // Optionally handle any action on dismiss
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        },
+      ),
     );
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);

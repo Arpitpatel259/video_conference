@@ -206,10 +206,10 @@ class _LoginScreenState extends State<LoginScreen> {
         _socialButton('assets/logos/google.png', "Google", () {
           Functions().signInWithGoogle(context);
         }),
-        const SizedBox(width: 16),
+        /* const SizedBox(width: 16),
         _socialButton('assets/logos/apple.png', "Apple", () {
           // Implement Apple sign-in functionality here
-        }),
+        }),*/
       ],
     );
   }

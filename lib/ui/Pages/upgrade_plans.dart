@@ -118,7 +118,7 @@ class UpgradePlanCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+                color: const Color(0xff3a57e8),
               ),
             ),
             const SizedBox(height: 8),
@@ -127,7 +127,7 @@ class UpgradePlanCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: Colors.deepPurple,
+                color: const Color(0xff3a57e8),
               ),
             ),
             const SizedBox(height: 16),
@@ -157,7 +157,7 @@ class UpgradePlanCard extends StatelessWidget {
               onPressed: onTap,
               style: ElevatedButton.styleFrom(
                 alignment: Alignment.center, // Ensures content is centered
-                backgroundColor: Colors.deepPurple,
+                backgroundColor: const Color(0xff3a57e8),
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

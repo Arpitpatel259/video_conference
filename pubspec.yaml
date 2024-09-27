@@ -50,6 +50,8 @@ dependencies:
   google_sign_in: ^6.2.1
   avatar_glow: ^2.0.0
   zego_uikit_prebuilt_call: ^4.15.13
+  in_app_update: ^4.2.3
+  package_info_plus: ^8.0.2
 
 
 dev_dependencies:

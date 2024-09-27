@@ -59,9 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }));
 
       setState(() {
-        _originalUserDataList = userDataList; // Store original data
-        _filteredUserDataList =
-            List.from(userDataList); // Initialize filtered list
+        _originalUserDataList = userDataList;
+        _filteredUserDataList = List.from(userDataList);
       });
     } catch (e) {
       print("Error fetching chat users: $e");
@@ -102,8 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _searchController.clear();
                       FocusScope.of(context).unfocus();
                       _isSearched.value = false;
-                      _filteredUserDataList = List.from(
-                          _originalUserDataList); // Reset the filtered list
+                      _filteredUserDataList = List.from(_originalUserDataList);
                       setState(() {});
                     } else {
                       _isSearched.value = true;
@@ -141,43 +139,50 @@ class _HomeScreenState extends State<HomeScreen> {
                             return const SizedBox.shrink();
                           }
 
-                          return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12.0, vertical: 4.0),
-                            leading: Container(
-                              height: 48,
-                              width: 48,
-                              clipBehavior: Clip.antiAlias,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                              ),
-                              child:
-                                  Functions().buildProfileImage(user['imgUrl']),
-                            ),
-                            title: Text(user['name'] ?? 'Unknown',
-                                style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold)),
-                            subtitle: Text(
-                              user['email'] ?? 'No email',
-                              style: const TextStyle(
-                                color: Colors.black,
-                              ),
-                            ),
-                            trailing: const Icon(Icons.arrow_forward_ios,
-                                color: Colors.grey),
-                            onTap: () {
-                              final roomId = _chatRoomId(
-                                  _auth.currentUser!.displayName ??
-                                      user['name'],
-                                  user['name']);
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ChatRoom(
-                                      chatRoomId: roomId, userMap: user),
+                          return Column(
+                            children: [
+                              ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12.0, vertical: 4.0),
+                                leading: Container(
+                                  height: 48,
+                                  width: 48,
+                                  clipBehavior: Clip.antiAlias,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Functions()
+                                      .buildProfileImage(user['imgUrl']),
                                 ),
-                              );
-                            },
+                                title: Text(user['name'] ?? 'Unknown',
+                                    style: const TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold)),
+                                subtitle: Text(
+                                  user['email'] ?? 'No email',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                onTap: () {
+                                  final roomId = _chatRoomId(
+                                      _auth.currentUser!.displayName ??
+                                          user['name'],
+                                      user['name']);
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => ChatRoom(
+                                          chatRoomId: roomId, userMap: user),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const Divider(
+                                color: Color(0x4d9e9e9e),
+                                height: 16,
+                                thickness: 1,
+                              ),
+                            ],
                           );
                         },
                       )
@@ -212,8 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(8.0),
           child: TextFormField(
             controller: _searchController,
-            obscureText: false,
-            textAlign: TextAlign.start,
             maxLines: 1,
             onChanged: (value) {
               _filterUsers(value);

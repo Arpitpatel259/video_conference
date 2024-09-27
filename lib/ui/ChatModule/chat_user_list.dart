@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_conference/ui/Pages/dash_board.dart';
+import 'package:video_conference/widget/common_snackbar.dart';
 
 import '../Services/Functions.dart';
 
@@ -40,10 +41,7 @@ class _ChatUserListState extends State<ChatUserList> {
   Future<void> fetchAllUsers() async {
     try {
       final snapshot = await _firestore.collection('User').get();
-      final allUsers = snapshot.docs
-          .map((doc) => doc.data())
-          .where((data) => data['isAdded'] == false)
-          .toList();
+      final allUsers = snapshot.docs.map((doc) => doc.data()).toList();
 
       setState(() {
         users = allUsers;
@@ -65,12 +63,33 @@ class _ChatUserListState extends State<ChatUserList> {
   }
 
   Future<void> addUserToChatList(String userIdToAdd) async {
-    final batch = _firestore.batch();
+    final userDoc = _firestore
+        .collection('User')
+        .doc(userId!)
+        .collection('ChatUserList')
+        .doc(userIdToAdd);
 
-    _updateChatList(userId!, userIdToAdd, batch);
-    _updateChatList(userIdToAdd, userId!, batch);
+    final docSnapshot = await userDoc.get();
 
-    await batch.commit();
+    if (docSnapshot.exists) {
+      CustomSnackBar.show(context, "Already Added!");
+    } else {
+      final batch = _firestore.batch();
+
+      _updateChatList(userId!, userIdToAdd, batch);
+      _updateChatList(userIdToAdd, userId!, batch);
+
+      await batch.commit();
+      CustomSnackBar.show(context, "Added to Chat!");
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DashBoard(initialIndex: 1),
+        ),
+        (Route<dynamic> route) => false,
+      );
+    }
   }
 
   void _updateChatList(String ownerId, String userId, WriteBatch batch) {
@@ -109,84 +128,80 @@ class _ChatUserListState extends State<ChatUserList> {
       title: const Text("Add Person", style: TextStyle(color: Colors.white)),
       backgroundColor: const Color(0xff3a57e8),
       iconTheme: const IconThemeData(color: Colors.white),
-      automaticallyImplyLeading: true,
       actions: [
-        Container(
-          padding: const EdgeInsets.all(6.0),
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            shape: BoxShape.circle,
-          ),
-          child: ValueListenableBuilder(
+        IconButton(
+          icon: ValueListenableBuilder(
             valueListenable: _search,
             builder: (context, value, child) {
-              return InkWell(
-                onTap: () {
-                  if (_search.value) {
-                    searchController.clear();
-                    FocusScope.of(context).unfocus();
-                    _search.value = false;
-                    filteredUsers = List.from(users); // Reset the filtered list
-                    setState(() {});
-                  } else {
-                    _search.value = true;
-                  }
-                },
-                child: Icon(
-                  value ? Icons.close : Icons.search,
-                  color: Colors.black,
-                ),
-              );
+              return Icon(value ? Icons.close : Icons.search,
+                  color: Colors.white);
             },
           ),
+          onPressed: () {
+            if (_search.value) {
+              searchController.clear();
+              FocusScope.of(context).unfocus();
+              _search.value = false;
+              filteredUsers = List.from(users);
+            } else {
+              _search.value = true;
+            }
+          },
         ),
-        const SizedBox(width: 10),
       ],
     );
   }
 
   Widget _buildUserList() {
-    return ListView.builder(
-      itemCount: filteredUsers.length,
-      itemBuilder: (context, index) {
-        final user = filteredUsers[index];
-        if (user['name'] == name) return const SizedBox.shrink();
+    if (filteredUsers.isEmpty) {
+      return const Center(
+        child: Text(
+          'No users found',
+          style: TextStyle(fontSize: 18, color: Colors.black54),
+        ),
+      );
+    }
 
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
-          leading: Container(
-            height: 50,
-            width: 50,
-            clipBehavior: Clip.antiAlias,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-            ),
-            child: Functions().buildProfileImage(user['imgUrl']),
-          ),
-          title: Text(user['name'],
-              style: const TextStyle(
-                  fontSize: 17,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500)),
-          trailing: IconButton(
-            icon: const Icon(Icons.add, color: Colors.green, size: 25),
-            onPressed: () async {
-              await addUserToChatList(user['id']);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${user['name']} added!')),
-              );
-
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DashBoard(initialIndex: 1),
+    return Expanded(
+      child: ListView.builder(
+        itemCount: filteredUsers.length,
+        itemBuilder: (context, index) {
+          final user = filteredUsers[index];
+          return Column(
+            children: [
+              const SizedBox(height: 5),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
+                leading: Container(
+                  height: 50,
+                  width: 50,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Functions().buildProfileImage(user['imgUrl']),
                 ),
-                (Route<dynamic> route) => false, // Remove all previous routes
-              );
-            },
-          ),
-        );
-      },
+                title: Text(user['name'],
+                    style: const TextStyle(
+                        fontSize: 17,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.add, color: Colors.green, size: 25),
+                  onPressed: () async {
+                    await addUserToChatList(user['id']);
+                  },
+                ),
+              ),
+              const Divider(
+                color: Color(0x4d9e9e9e),
+                height: 16,
+                thickness: 1,
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -198,9 +213,8 @@ class _ChatUserListState extends State<ChatUserList> {
         duration: const Duration(milliseconds: 300),
         height: isVisible ? height : 0,
         width: double.infinity,
-        curve: Curves.fastOutSlowIn,
         child: Padding(
-          padding: const EdgeInsets.all(8.0), // Reduced padding
+          padding: const EdgeInsets.all(8.0),
           child: TextFormField(
             controller: searchController,
             maxLines: 1,

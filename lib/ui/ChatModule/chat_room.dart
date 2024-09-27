@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_conference/ui/ZegoCloud/zego_audio_call.dart';
 
@@ -33,17 +35,34 @@ class _ChatRoomState extends State<ChatRoom> {
   Future<void> _getImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
     if (pickedFile != null) {
       setState(() => _imageFile = File(pickedFile.path));
       await _uploadImage();
     }
   }
 
+  @override
+  void initState() {
+    _initializeData();
+    super.initState();
+  }
+
+  bool isLoading = false;
+  late SharedPreferences _prefs;
+  String? _userId, _name;
+
+  Future<void> _initializeData() async {
+    setState(() => isLoading = true);
+    _prefs = await SharedPreferences.getInstance();
+    _userId = _prefs.getString("userId");
+    _name = _prefs.getString("name");
+
+    setState(() => isLoading = false);
+  }
+
   // Upload image to Firestore
   Future<void> _uploadImage() async {
     if (_imageFile == null) return;
-
     final fileName = Uuid().v1();
     final imageRef =
         FirebaseStorage.instance.ref().child('images/$fileName.jpg');
@@ -60,7 +79,6 @@ class _ChatRoomState extends State<ChatRoom> {
         "type": "img",
         "time": FieldValue.serverTimestamp(),
       });
-
       final uploadTask = imageRef.putFile(_imageFile!);
       final imageUrl = await (await uploadTask).ref.getDownloadURL();
 
@@ -111,6 +129,12 @@ class _ChatRoomState extends State<ChatRoom> {
     }
   }
 
+  String _generateRoomId(String user1, String user2) {
+    List<String> users = [user1, user2];
+    users.sort();
+    return users.join('_');
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -135,10 +159,8 @@ class _ChatRoomState extends State<ChatRoom> {
 
               return Row(
                 children: [
-                  // GestureDetector to handle tap on the profile picture
                   GestureDetector(
                     onTap: () {
-                      // Navigate to ProfileViewPage when the profile picture is tapped
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -151,26 +173,20 @@ class _ChatRoomState extends State<ChatRoom> {
                       height: 50,
                       width: 50,
                       clipBehavior: Clip.antiAlias,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: const BoxDecoration(shape: BoxShape.circle),
                       child: Functions().buildProfileImage(profileImage),
                     ),
                   ),
-                  const SizedBox(width: 10), // Spacing between image and text
+                  const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.userMap['name'],
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                      Text(
-                        status,
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.white),
-                      ),
+                      Text(widget.userMap['name'],
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 16)),
+                      Text(status,
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.white)),
                     ],
                   ),
                 ],
@@ -183,29 +199,30 @@ class _ChatRoomState extends State<ChatRoom> {
           IconButton(
             icon: const Icon(Icons.phone),
             onPressed: () {
-              // Call functionality
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ZegoAudioCall(
-                      callId: widget.chatRoomId,
-                      userId: widget.userMap['id'],
-                    ),
-                  ));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ZegoAudioCall(
+                    callId: _generateRoomId(
+                        _name.toString(), widget.userMap['name']),
+                    userId: _userId.toString(),
+                  ),
+                ),
+              );
             },
           ),
           IconButton(
             icon: const Icon(Icons.videocam),
             onPressed: () {
-              // Video call functionality
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ZegoVideoCall(
-                      callId: widget.chatRoomId,
-                      userId: widget.userMap['id'],
-                    ),
-                  ));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ZegoVideoCall(
+                    callId: widget.chatRoomId,
+                    userId: widget.userMap['id'],
+                  ),
+                ),
+              );
             },
           ),
         ],
@@ -263,19 +280,13 @@ class _ChatRoomState extends State<ChatRoom> {
                   Expanded(
                     child: TextField(
                       controller: _messageController,
-                      style: const TextStyle(
-                        color: Colors.black,
-                      ),
+                      style: const TextStyle(color: Colors.black),
                       decoration: const InputDecoration(
                         hintText: "Type a message",
-                        hintStyle: TextStyle(
-                          color: Colors.black,
-                        ),
+                        hintStyle: TextStyle(color: Colors.black),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
-                          vertical: 10.0,
-                          horizontal: 20.0,
-                        ),
+                            vertical: 10.0, horizontal: 20.0),
                       ),
                     ),
                   ),
@@ -289,11 +300,8 @@ class _ChatRoomState extends State<ChatRoom> {
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.all(0),
-            decoration: const BoxDecoration(
-              color: Colors.blue,
-              shape: BoxShape.circle,
-            ),
+            decoration:
+                const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
             child: IconButton(
               icon: const Icon(Icons.send, color: Colors.white),
               onPressed: _sendMessage,
@@ -328,10 +336,8 @@ class _ChatRoomState extends State<ChatRoom> {
           messageWidget,
           Padding(
             padding: const EdgeInsets.only(left: 10, right: 10, top: 4),
-            child: Text(
-              timeString,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            child: Text(timeString,
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
           ),
           const SizedBox(height: 10),
         ],
@@ -343,76 +349,113 @@ class _ChatRoomState extends State<ChatRoom> {
   Widget _buildTextMessage(
       String message, bool isCurrentUser, String timeString) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        color: isCurrentUser ? Colors.blue : Colors.grey.shade200,
+        color:
+            isCurrentUser ? const Color(0xff3a57e8) : const Color(0xffe1ffc7),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        message,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: isCurrentUser ? Colors.white : Colors.black87,
-        ),
-      ),
+      child: Text(message,
+          style: TextStyle(color: isCurrentUser ? Colors.white : Colors.black)),
     );
   }
 
   // Build image message widget
   Widget _buildImageMessage(
       String imageUrl, bool isCurrentUser, String timeString) {
-    return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ShowImage(imageUrl: imageUrl),
-        ),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+      decoration: BoxDecoration(
+        color:
+            isCurrentUser ? const Color(0xff3a57e8) : const Color(0xffe1ffc7),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Container(
-          height: MediaQuery.of(context).size.height / 2.5,
-          width: MediaQuery.of(context).size.width / 1.5,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(10),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ShowImage(imageUrl: imageUrl),
+                  ));
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.network(imageUrl,
+                  fit: BoxFit.cover, height: 200, width: 150,
+                  loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                    child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                (loadingProgress.expectedTotalBytes ?? 1)
+                            : null));
+              }),
+            ),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: imageUrl.isNotEmpty
-                ? Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                          child: Icon(Icons.error, color: Colors.red));
-                    },
-                  )
-                : const Center(child: CircularProgressIndicator()),
-          ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class ShowImage extends StatelessWidget {
+class ShowImage extends StatefulWidget {
   final String imageUrl;
 
   const ShowImage({required this.imageUrl, Key? key}) : super(key: key);
 
   @override
+  _ShowImageState createState() => _ShowImageState();
+}
+
+class _ShowImageState extends State<ShowImage> {
+  double _scale = 1.0;
+  double _previousScale = 1.0;
+
+  void _onDoubleTap() {
+    setState(() {
+      // Toggle zoom between 1.0 and 2.0
+      _scale = _scale == 1.0 ? 2.0 : 1.0;
+    });
+  }
+
+  void _onScaleStart(ScaleStartDetails details) {
+    _previousScale = _scale;
+  }
+
+  void _onScaleUpdate(ScaleUpdateDetails details) {
+    setState(() {
+      _scale = _previousScale * details.scale;
+      // Constrain the scale to a reasonable range
+      _scale = _scale.clamp(1.0, 3.0);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(),
       body: Center(
-        child: Image.network(imageUrl, fit: BoxFit.contain),
+        child: GestureDetector(
+          onDoubleTap: _onDoubleTap,
+          onScaleStart: _onScaleStart,
+          onScaleUpdate: _onScaleUpdate,
+          child: SingleChildScrollView(
+            child: Transform.scale(
+              scale: _scale,
+              child: SingleChildScrollView(
+                child: Image.network(
+                  widget.imageUrl,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -426,74 +469,82 @@ class ProfileViewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Dark background color
       appBar: AppBar(
-        title: const Text("Profile"),
+        elevation: 2,
         backgroundColor: const Color(0xff3a57e8),
-        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
+        ),
+        title: const Text(
+          "Profile",
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontStyle: FontStyle.normal,
+            fontSize: 20,
+            color: Color(0xffffffff),
+          ),
+        ),
       ),
-      backgroundColor: Colors.white, // Set background to white
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            // Profile Image with elevation
-            Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.4),
-                      blurRadius: 10,
-                      spreadRadius: 3,
-                    ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  backgroundImage: NetworkImage(
-                      userMap['imgUrl'] ?? 'default_profile_image_url'),
-                  radius: 60, // Larger for profile view
+            // Profile Image with circular border
+            AvatarGlow(
+              endRadius: 70.0,
+              glowColor: Colors.blue,
+              duration: const Duration(milliseconds: 2000),
+              repeat: true,
+              showTwoGlows: true,
+              child: ClipOval(
+                clipBehavior: Clip.hardEdge,
+                child: SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: Functions().buildProfileImage(userMap['imgUrl']),
                 ),
               ),
             ),
             const SizedBox(height: 20),
             // User Name
             Text(
-              userMap['name'] ?? 'Name not available',
+              userMap['name'] ?? '',
               style: const TextStyle(
-                fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                fontSize: 24,
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 10),
-            // Status
-            Text(
-              userMap['status'] ?? 'Offline',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+            // About section
+            _buildProfileDetail(
+              value: userMap['email'] ?? 'At the movies',
             ),
             const SizedBox(height: 30),
-            // Divider for better layout structure
-            const Divider(thickness: 1, color: Colors.grey),
-            const SizedBox(height: 20),
             // Call and Video Call Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: () {
-                    // Call functionality
+                    // Voice Call functionality
                   },
-                  icon: const Icon(Icons.phone, size: 24),
-                  label: const Text('Call'),
+                  icon: const Icon(
+                    Icons.phone,
+                    size: 24,
+                    color: Colors.blueAccent,
+                  ),
+                  label: const Text(
+                    'Voice',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff3a57e8),
-                    // Call button color
+                    backgroundColor: Colors.grey,
                     padding: const EdgeInsets.symmetric(
                       vertical: 10,
                       horizontal: 20,
@@ -506,13 +557,20 @@ class ProfileViewPage extends StatelessWidget {
                 const SizedBox(width: 20),
                 ElevatedButton.icon(
                   onPressed: () {
-                    // Video call functionality
+                    // Video Call functionality
                   },
-                  icon: const Icon(Icons.videocam, size: 24),
-                  label: const Text('Video Call'),
+                  icon: const Icon(
+                    Icons.videocam,
+                    size: 24,
+                    color: Colors.blueAccent,
+                  ),
+                  label: const Text(
+                    'Video',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff3a57e8),
-                    // Video call button color
+                    backgroundColor: Colors.grey,
                     padding: const EdgeInsets.symmetric(
                       vertical: 10,
                       horizontal: 20,
@@ -527,6 +585,24 @@ class ProfileViewPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // Helper method to build profile detail without icon
+  Widget _buildProfileDetail({
+    required String value,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 14,
+          ),
+        ),
+      ],
     );
   }
 }

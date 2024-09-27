@@ -256,7 +256,17 @@ class MeetingCard extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => MeetingCarousel(
-              images: [],
+              images: const [
+                'https://picsum.photos/250',
+                'https://picsum.photos/250',
+                'https://picsum.photos/250',
+              ],
+              meetingData: {
+                'title': title,
+                'description': description,
+                'date': date,
+                'time': time,
+              },
             ),
           ),
         );
@@ -354,8 +364,13 @@ class MeetingCard extends StatelessWidget {
 
 class MeetingCarousel extends StatefulWidget {
   final List<String> images;
+  final Map<String, dynamic> meetingData;
 
-  const MeetingCarousel({Key? key, required this.images}) : super(key: key);
+  const MeetingCarousel({
+    Key? key,
+    required this.images,
+    required this.meetingData,
+  }) : super(key: key);
 
   @override
   _MeetingCarouselState createState() => _MeetingCarouselState();
@@ -366,68 +381,114 @@ class _MeetingCarouselState extends State<MeetingCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CarouselSlider.builder(
-          itemCount: widget.images.length, // Dynamic number of images
-          options: CarouselOptions(
-            height: 200.0,
-            enlargeCenterPage: true,
-            autoPlay: true,
-            viewportFraction: 1,
-            aspectRatio: 16 / 9,
-            autoPlayInterval: const Duration(seconds: 3),
-            onPageChanged: (index, reason) {
-              setState(() {
-                _current = index; // Only updates the carousel state
-              });
-            },
-          ),
-          itemBuilder: (BuildContext context, int index, int realIdx) {
-            return SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10.0),
-                child: Image.network(
-                  widget.images.isNotEmpty
-                      ? widget.images[index].toString()
-                      : "https://picsum.photos/200", // Example image URL
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(
-                        Icons.error); // Error handling for failed images
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          widget.meetingData['title'],
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Carousel Slider for images
+            Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                // Carousel Slider for images
+                CarouselSlider.builder(
+                  itemCount: widget.images.length, // Dynamic number of images
+                  options: CarouselOptions(
+                    height: 250.0,
+                    enlargeCenterPage: true,
+                    autoPlay: true,
+                    viewportFraction: 1,
+                    aspectRatio: 16 / 9,
+                    autoPlayInterval: const Duration(seconds: 3),
+                    onPageChanged: (index, reason) {
+                      setState(() {
+                        _current = index; // Updates the carousel state
+                      });
+                    },
+                  ),
+                  itemBuilder: (BuildContext context, int index, int realIdx) {
+                    return SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: Image.network(
+                          widget.images.isNotEmpty
+                              ? widget.images[index]
+                              : "https://picsum.photos/200",
+                          // Example image URL
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons
+                                .error); // Error handling for failed images
+                          },
+                        ),
+                      ),
+                    );
                   },
                 ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(widget.images.length, (index) {
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _current = index; // Tap to change image manually
-                });
-              },
-              child: Container(
-                width: 8.0,
-                height: 8.0,
-                margin:
-                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _current == index
-                      ? Colors.blueAccent
-                      : Colors.grey, // Dot color based on current index
+                // Dots indicator positioned on top of the images
+                Positioned(
+                  bottom: 10,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: widget.images.asMap().entries.map((entry) {
+                      return Container(
+                        width: 8.0,
+                        height: 8.0,
+                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: (_current == entry.key)
+                              ? Colors.blue
+                              : Colors.blue.withOpacity(0.4),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${widget.meetingData['date'] ?? 'No Date'}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${widget.meetingData['time'] ?? 'No Time'}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ],
               ),
-            );
-          }),
+            ),
+            // Displaying meeting data
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.meetingData['description'] ?? 'No Description',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

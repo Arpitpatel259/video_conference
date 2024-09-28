@@ -69,41 +69,20 @@ class _MeetingScreenState extends State<MeetingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        _showJoinMeetingBottomSheet(context);
-                      },
-                      icon:
-                          const Icon(Icons.group, color: Colors.blue, size: 30),
-                      label: const Text(
-                        'Join Meeting',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.blue,
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: Colors.blue),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      ),
-                    ),
-                  ),
                   const SizedBox(width: 16), // Spacing between buttons
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        _showNewMeetingBottomSheet(context);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ScheduleMeetingPage(),
+                            ));
                       },
                       icon: const Icon(Icons.add_box,
                           color: Colors.green, size: 30),
                       label: const Text(
-                        'Create Meeting',
+                        'Create Meeting For Later',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -127,201 +106,6 @@ class _MeetingScreenState extends State<MeetingScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void _showJoinMeetingBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              left: 16,
-              right: 16,
-              top: 16,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Enter Joining Code',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextField(
-                  autofocus: true,
-                  style: TextStyle(
-                    color: Colors.black,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Enter code',
-                    hintStyle: TextStyle(
-                      color: Colors.black,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
-                  ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    // Handle code input change if needed
-                  },
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[400],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context); // Close the bottom sheet
-                          },
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text(
-                            'Next',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showNewMeetingBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // New Meeting Option 1
-                ListTile(
-                  leading:
-                      Icon(Icons.schedule, color: Colors.blue[700], size: 30),
-                  title: const Text(
-                    'Create a Meeting for Later',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  onTap: () {
-                    // Add action for scheduling a meeting
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ScheduleMeetingPage(),
-                        ));
-                  },
-                ),
-                const Divider(),
-                // New Meeting Option 2
-                ListTile(
-                  leading: Icon(Icons.link, color: Colors.green[700], size: 30),
-                  title: const Text(
-                    'Get a Meeting Link to Share',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  onTap: () {
-                    // Add action for getting a meeting link
-                    Navigator.pop(context);
-                  },
-                ),
-                const Divider(),
-                // New Meeting Option 3
-                ListTile(
-                  leading:
-                      Icon(Icons.videocam, color: Colors.orange[700], size: 30),
-                  title: const Text(
-                    'Start an Instant Meeting',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  onTap: () {
-                    //Add action for starting an instant meeting
-                    /* Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const VideoConferencePage(
-                          conferenceID: '111',
-                        ),
-                      ),
-                    );*/
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

@@ -52,6 +52,7 @@ dependencies:
   zego_uikit_prebuilt_call: ^4.15.13
   in_app_update: ^4.2.3
   package_info_plus: ^8.0.2
+  firebase_messaging: ^14.9.4
 
 
 dev_dependencies:

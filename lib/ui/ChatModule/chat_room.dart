@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,8 +33,8 @@ class _ChatRoomState extends State<ChatRoom> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ScrollController _scrollController = ScrollController();
   File? _imageFile;
+  String? call_id;
 
-  // Fetch image from gallery
   Future<void> _getImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -43,19 +46,34 @@ class _ChatRoomState extends State<ChatRoom> {
 
   @override
   void initState() {
+    _requestNotificationPermission();
+    _fetchCallId();
     _initializeData();
+    print("Chatroom:---- ${widget.chatRoomId.toString()}");
     super.initState();
   }
 
   bool isLoading = false;
   late SharedPreferences _prefs;
-  String? _userId, _name;
+  String? _userId, _name, token;
+
+  // Request notification permissions
+  Future<void> _requestNotificationPermission() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission();
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('User granted permission');
+    } else {
+      print('User declined permission');
+    }
+  }
 
   Future<void> _initializeData() async {
     setState(() => isLoading = true);
     _prefs = await SharedPreferences.getInstance();
     _userId = _prefs.getString("userId");
     _name = _prefs.getString("name");
+    token = _prefs.getString("fcmToken");
 
     setState(() => isLoading = false);
   }
@@ -63,7 +81,7 @@ class _ChatRoomState extends State<ChatRoom> {
   // Upload image to Firestore
   Future<void> _uploadImage() async {
     if (_imageFile == null) return;
-    final fileName = Uuid().v1();
+    final fileName = const Uuid().v1();
     final imageRef =
         FirebaseStorage.instance.ref().child('images/$fileName.jpg');
 
@@ -129,10 +147,68 @@ class _ChatRoomState extends State<ChatRoom> {
     }
   }
 
-  String _generateRoomId(String user1, String user2) {
-    List<String> users = [user1, user2];
-    users.sort();
-    return users.join('_');
+  Future<void> _fetchCallId() async {
+    String chatRoomId = widget.chatRoomId; // Your chat room ID
+    String? callId = await getCallId(chatRoomId);
+
+    if (callId != null) {
+      call_id = callId;
+      print('Call ID: $callId');
+      // Use the callId as needed
+    } else {
+      print('No Call ID found');
+    }
+  }
+
+  /// Function to retrieve callId for a specific chatroom
+  Future<String?> getCallId(String chatRoomId) async {
+    try {
+      DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection('chatroom')
+          .doc(chatRoomId)
+          .get();
+
+      if (documentSnapshot.exists && documentSnapshot.data() != null) {
+        Map<String, dynamic>? data =
+            documentSnapshot.data() as Map<String, dynamic>?;
+        String? callId = data?['callId'];
+        return callId;
+      }
+    } catch (e) {
+      print('Error fetching callId: $e');
+    }
+    return null;
+  }
+
+  // Send incoming call notification
+  Future<void> _sendIncomingCallNotification(
+      String token, String callerId) async {
+    const String serverKey =
+        'YOUR_SERVER_KEY'; // Replace with your FCM Server Key
+    const String fcmUrl = 'https://fcm.googleapis.com/fcm/send';
+
+    final response = await http.post(
+      Uri.parse(fcmUrl),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'key=$serverKey',
+      },
+      body: json.encode({
+        'to': token,
+        'notification': {
+          'title': 'Incoming Call',
+          'body': 'You have an incoming call from $callerId',
+          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+        },
+        'data': {
+          'callerId': callerId,
+        },
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      print('Failed to send notification: ${response.body}');
+    }
   }
 
   @override
@@ -198,13 +274,14 @@ class _ChatRoomState extends State<ChatRoom> {
         actions: [
           IconButton(
             icon: const Icon(Icons.phone),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              String recipientToken = token!;
+              await _sendIncomingCallNotification(recipientToken, _userId!);
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ZegoAudioCall(
-                    callId: _generateRoomId(
-                        _name.toString(), widget.userMap['name']),
+                    callId: call_id!,
                     userId: _userId.toString(),
                   ),
                 ),
@@ -213,12 +290,14 @@ class _ChatRoomState extends State<ChatRoom> {
           ),
           IconButton(
             icon: const Icon(Icons.videocam),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              String recipientToken = token!; // Get recipient's token
+              await _sendIncomingCallNotification(recipientToken, _userId!);
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ZegoVideoCall(
-                    callId: widget.chatRoomId,
+                    callId: call_id!,
                     userId: widget.userMap['id'],
                   ),
                 ),

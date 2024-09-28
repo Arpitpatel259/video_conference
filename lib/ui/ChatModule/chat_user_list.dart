@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +20,7 @@ class _ChatUserListState extends State<ChatUserList> {
   final ValueNotifier<bool> _search = ValueNotifier(false);
   var searchController = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
+  final auth = FirebaseAuth.instance;
 
   List<Map<String, dynamic>> users = [];
   List<Map<String, dynamic>> filteredUsers = [];
@@ -36,6 +38,13 @@ class _ChatUserListState extends State<ChatUserList> {
     name = pref.getString("name");
     userId = pref.getString("userId");
     fetchAllUsers();
+  }
+
+  String _chatRoomId(String user1, String user2) {
+    return (user1[0].toLowerCase().codeUnits[0] >
+            user2.toLowerCase().codeUnits[0])
+        ? "$user1$user2"
+        : "$user2$user1";
   }
 
   Future<void> fetchAllUsers() async {
@@ -62,7 +71,7 @@ class _ChatUserListState extends State<ChatUserList> {
     });
   }
 
-  Future<void> addUserToChatList(String userIdToAdd) async {
+  /*Future<void> addUserToChatList(String userIdToAdd) async {
     final userDoc = _firestore
         .collection('User')
         .doc(userId!)
@@ -90,6 +99,90 @@ class _ChatUserListState extends State<ChatUserList> {
         (Route<dynamic> route) => false,
       );
     }
+  }
+
+  void _updateChatList(String ownerId, String userId, WriteBatch batch) {
+    final chatUserData = {'userId': userId};
+    final ref = _firestore
+        .collection('User')
+        .doc(ownerId)
+        .collection('ChatUserList')
+        .doc(userId);
+    batch.set(ref, chatUserData);
+  }*/
+
+  Future<void> addUserToChatList(
+      String userIdToAdd, String chatRoomName) async {
+    final userDoc = _firestore
+        .collection('User')
+        .doc(userId!)
+        .collection('ChatUserList')
+        .doc(userIdToAdd);
+
+    final docSnapshot = await userDoc.get();
+
+    if (docSnapshot.exists) {
+      CustomSnackBar.show(context, "Already Added!");
+    } else {
+      final batch = _firestore.batch();
+
+      // Generate a unique callId
+      String callId = await _generateUniqueCallId();
+
+      // Update the chat list with the new user
+      _updateChatList(userId!, userIdToAdd, batch);
+      _updateChatList(userIdToAdd, userId!, batch);
+
+      // Update the callId in the specified chat room
+      _updateChatRoomWithCallId(chatRoomName, callId, batch);
+
+      await batch.commit();
+      CustomSnackBar.show(context, "Added to Chat!");
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DashBoard(initialIndex: 1),
+        ),
+        (Route<dynamic> route) => false,
+      );
+    }
+  }
+
+  Future<String> _generateUniqueCallId() async {
+    int callId;
+    bool isUnique = false;
+
+    callId = 0;
+
+    while (!isUnique) {
+      callId = Random().nextInt(9000) +
+          1000; // Generates a 4-digit number (1000 to 9999)
+
+      // Check if this callId already exists in the Firestore
+      final callIdQuery = await _firestore
+          .collection('chatroom')
+          .where('callId', isEqualTo: callId.toString())
+          .get();
+
+      if (callIdQuery.docs.isEmpty) {
+        isUnique = true; // Unique callId found
+      }
+    }
+
+    return callId.toString();
+  }
+
+  void _updateChatRoomWithCallId(
+      String chatRoomName, String callId, WriteBatch batch) {
+    final chatRoomDoc = _firestore.collection('chatroom').doc(chatRoomName);
+
+    batch.set(
+        chatRoomDoc,
+        {
+          'callId': callId,
+        },
+        SetOptions(merge: true));
   }
 
   void _updateChatList(String ownerId, String userId, WriteBatch batch) {
@@ -189,7 +282,8 @@ class _ChatUserListState extends State<ChatUserList> {
                 trailing: IconButton(
                   icon: const Icon(Icons.add, color: Colors.green, size: 25),
                   onPressed: () async {
-                    await addUserToChatList(user['id']);
+                    final roomId = _chatRoomId(name!, user['name']);
+                    await addUserToChatList(user['id'], roomId);
                   },
                 ),
               ),

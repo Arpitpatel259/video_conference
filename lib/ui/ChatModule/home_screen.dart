@@ -165,10 +165,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 onTap: () {
-                                  final roomId = _chatRoomId(
-                                      _auth.currentUser!.displayName ??
-                                          user['name'],
-                                      user['name']);
+                                  final roomId =
+                                      _chatRoomId(_name!, user['name']);
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (_) => ChatRoom(

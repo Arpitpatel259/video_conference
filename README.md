@@ -1,23 +1,20 @@
-# video_conference
+# Video Conference App
 
-A new Flutter project.
+A unique video conferencing app built with Flutter, Dart, Firebase, and ZegoCloud, providing users with seamless audio and video calling, as well as chat functionality. The app is designed to enhance collaboration and connection with an intuitive, high-quality user experience.
 
-## Getting Started
+## Key Features
 
-This project is a starting point for a Flutter application.
+- **Video and Audio Calls**: Engage in high-definition video and crystal-clear audio calls powered by ZegoCloud, allowing for seamless communication between users.
+- **Real-time Chat**: Built-in chat functionality enables users to message each other within the app, creating a collaborative experience during calls and conferences.
+- **Firebase Integration**: Utilizes Firebase Authentication for user login and registration, and Firestore for secure, real-time data storage.
+- **Flutter UI**: Clean, user-friendly UI design created using Flutter, with a focus on smooth and responsive interactions for both iOS and Android.
+- **State Management**: Efficient state management with providers for reactive and manageable code.
 
-A few resources to get you started if this is your first Flutter project:
+## Installation
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+To get started, clone the repository and install the required dependencies.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
-app id :- 0470f57647474e4895b712275814acd9
-app certificate :- d1b0e0a0e9ff4e5ab5a3961f96c33ed7
-token :-
-007eJxTYLj+5OGBI0tqjhV0yR9Zzpd7/6r0HEPm3mnOxZ8vhLFvjLNQYDAwMTdIMzU3MzEHwlQTC0vTJHNDIyNzUwtDk8TkFEuXiQ/SGgIZGT6VFjExMkAgiM/CUJJaXMLAAACrriA7
-
-channel :- test
+```bash
+git clone https://github.com/yourusername/video_conference_app.git
+cd video_conference_app
+flutter pub get
